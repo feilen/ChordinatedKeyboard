@@ -1,0 +1,19 @@
+<Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
+    android:keyWidth="10%p"
+    android:horizontalGap="0px"
+    android:verticalGap="0px"
+    >
+    <!-- This one involves a hack in which we swap the space and center-chord keys vertically. -->
+    <Row android:keyHeight="12.5%p" android:rowEdgeFlags="bottom" >
+        <Key android:codes="-5" android:keyLabel="⌫" android:keyWidth="15%p" android:isRepeatable="true"/>
+        <Key android:codes="-5" android:keyLabel="⇧" android:keyWidth="15%p"/>
+        <Key android:codes="32" android:keyLabel="␣" android:keyWidth="40%p" android:isRepeatable="true"/> <!--swap with above-->
+        <Key android:codes="46" android:keyLabel="SYM" android:keyWidth="15%p"/>
+        <Key android:codes="46" android:keyLabel="⏎" android:keyWidth="15%p"/>
+    </Row>
+    <Row android:keyHeight="47.5%p">
+        <Key android:codes="48" android:keyLabel="" android:keyWidth="30%p" android:keyEdgeFlags="left"/>
+        <Key android:codes="49" android:keyLabel="" android:keyWidth="40%p"/> <!-- swap with below -->
+        <Key android:codes="50" android:keyLabel="" android:keyWidth="30%p" android:keyEdgeFlags="right"/>
+    </Row>
+</Keyboard>
