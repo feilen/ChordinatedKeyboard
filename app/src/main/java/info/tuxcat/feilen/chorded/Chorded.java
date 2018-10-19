@@ -11,6 +11,7 @@ import android.inputmethodservice.KeyboardView;
 import android.inputmethodservice.KeyboardView.OnKeyboardActionListener;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputConnection;
 
@@ -43,6 +44,8 @@ public class Chorded extends InputMethodService
 
     @Override
     public View onCreateInputView() {
+        return getLayoutInflater().inflate(R.layout.threechord, null);
+        /*
         kv = (KeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
         switch(kType) {
             case TWOFINGER:
@@ -122,6 +125,7 @@ public class Chorded extends InputMethodService
         curNode = tree.root;
         relabelKeys();
         return kv;
+        */
     }
 
     @Override
