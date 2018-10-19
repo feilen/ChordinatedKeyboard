@@ -12,8 +12,11 @@ import android.inputmethodservice.KeyboardView.OnKeyboardActionListener;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputConnection;
+import android.widget.Button;
+import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
@@ -22,77 +25,164 @@ import java.util.concurrent.locks.ReentrantLock;
 import static info.tuxcat.feilen.chorded.Chorded.KeyboardType.TWOFINGER;
 import static info.tuxcat.feilen.chorded.Chorded.KeyboardType.THREEFINGER;
 
-public class Chorded extends InputMethodService
-        implements OnKeyboardActionListener {
+public class Chorded extends InputMethodService{
 
-    private KeyboardView kv;
-    private Keyboard keyboard;
+    private View kv;
 
     private HuffmanTree tree;
     private HuffmanNode curNode;
     enum KeyboardType {TWOFINGER, THREEFINGER};
-    int pressed;
+    int buttonpress_current;
+    int buttonpress_chord;
     Lock presslock;
     KeyboardType kType = THREEFINGER;
-
-
-    //int[] keylookup = {0, 1, 2};
 
     int[] keylookup;
 
     private boolean caps = false;
 
+    View.OnTouchListener onPress = new View.OnTouchListener()
+    {
+        @Override
+        public boolean onTouch(View button, MotionEvent eventtype)
+        {
+            InputConnection ic = getCurrentInputConnection();
+            switch(eventtype.getAction())
+            {
+                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_POINTER_DOWN:
+                    presslock.lock();
+                    switch(button.getId())
+                    {
+                        case R.id.chord_one:
+                            buttonpress_current = buttonpress_current | 0b001;
+                            buttonpress_chord = buttonpress_chord | 0b001;
+                            break;
+                        case R.id.chord_two:
+                            buttonpress_current = buttonpress_current | 0b010;
+                            buttonpress_chord = buttonpress_chord | 0b010;
+                            break;
+                        case R.id.chord_three:
+                            buttonpress_current = buttonpress_current | 0b100;
+                            buttonpress_chord = buttonpress_chord | 0b100;
+                            break;
+                        case R.id.button_backspace:
+                            ic.deleteSurroundingText(1, 0);
+                            break;
+                        case R.id.button_shift:
+                            caps = !caps;
+                            break;
+                        case R.id.button_sym:
+                            ic.commitText(".", 1);
+                            break;
+                        case R.id.button_return:
+                            ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+                            break;
+                        case R.id.button_space:
+                            ic.commitText(" ",  1);
+                            break;
+                    }
+                    presslock.unlock();
+                    break;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_POINTER_UP:
+                    presslock.lock();
+                    switch(button.getId())
+                    {
+                        case R.id.chord_one:
+                        case R.id.chord_two:
+                        case R.id.chord_three:
+                            switch(button.getId())
+                            {
+                                case R.id.chord_one:
+                                    buttonpress_current = buttonpress_current & ~0b001;
+                                    break;
+                                case R.id.chord_two:
+                                    buttonpress_current = buttonpress_current & ~0b010;
+                                    break;
+                                case R.id.chord_three:
+                                    buttonpress_current = buttonpress_current & ~0b100;
+                                    break;
+                            }
+                            // Only commit when all are released
+                            if(buttonpress_current != 0)
+                            {
+                                break;
+                            }
+                            if(curNode.children.size() >= keylookup[buttonpress_chord])
+                            {
+                                curNode = curNode.children.get(keylookup[buttonpress_chord]);
+                                if(curNode.children.size() == 0)
+                                {
+                                    // Reached the end. Commit the current letter.
+                                    ic = getCurrentInputConnection();
+                                    char inputchar = curNode.thechar;
+                                    if(caps && Character.isAlphabetic(inputchar))
+                                    {
+                                        inputchar = Character.toUpperCase(inputchar);
+                                        caps = !caps;
+                                    }
+                                    ic.commitText(String.valueOf(inputchar), 1);
+                                    curNode = tree.root;
+                                } else {
+                                    // Presumably indicate that a button was pressed
+                                }
+                                buttonpress_chord = 0;
+                            } else {
+                                // Invalid coding. Reset to root.
+                                buttonpress_chord = 0;
+                                curNode = tree.root;
+                            }
+                            break;
+                        default:
+                            buttonpress_chord = 0;
+                            curNode = tree.root;
+                    }
+                    relabelKeys();
+                    presslock.unlock();
+                    break;
+            }
+            return true;
+        }
+    };
+
     @Override
     public View onCreateInputView() {
-        return getLayoutInflater().inflate(R.layout.threechord, null);
-        /*
-        kv = (KeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
+        //kv = (KeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
         switch(kType) {
             case TWOFINGER:
-                keyboard = new Keyboard(this, R.xml.chorded);
+                //keyboard = new Keyboard(this, R.xml.chorded);
                 tree = new HuffmanTree(3);
                 //                     01  10  11
                 keylookup = new int[]{ -1,  0,  1,  3};
                 break;
             case THREEFINGER:
-                keyboard = new Keyboard(this, R.xml.chorded_three);
-                // ugly hack ahead, swap the space and middle
-                int middleheight = 0, spaceheight = 0;
-                for(Key k: keyboard.getKeys())
-                {
-                    switch(k.codes[0])
-                    {
-                        case 32:
-                            spaceheight = k.height;
-                            break;
-                        case 49:
-                            middleheight = k.height;
-                            break;
-                    }
-                }
-                for(Key k: keyboard.getKeys())
-                {
-                    switch(k.codes[0])
-                    {
-                        case 32:
-                            k.y += middleheight;
-                            break;
-                        case 49:
-                            k.y -= spaceheight;
-                            break;
-                    }
-                }
+                kv = getLayoutInflater().inflate(R.layout.threechord, null);
                 tree = new HuffmanTree(7);
                 //                          001 010 011 100 101 110 111
                 keylookup = new int[]{ -1,  0,  1,  3,  2,  5,  4,  6};
+                final Button button_space = kv.findViewById(R.id.button_space);
+                button_space.setOnTouchListener(onPress);
+                final Button button_backspace = kv.findViewById(R.id.button_backspace);
+                button_backspace.setOnTouchListener(onPress);
+                final Button button_shift = kv.findViewById(R.id.button_shift);
+                button_shift.setOnTouchListener(onPress);
+                final Button button_sym = kv.findViewById(R.id.button_sym);
+                button_sym.setOnTouchListener(onPress);
+                final Button button_return = kv.findViewById(R.id.button_return);
+                button_shift.setOnTouchListener(onPress);
+                final Button chord_one = kv.findViewById(R.id.chord_one);
+                chord_one.setOnTouchListener(onPress);
+                final Button chord_two = kv.findViewById(R.id.chord_two);
+                chord_two.setOnTouchListener(onPress);
+                final Button chord_three = kv.findViewById(R.id.chord_three);
+                chord_three.setOnTouchListener(onPress);
                 break;
         }
-        kv.setKeyboard(keyboard);
-        kv.setPreviewEnabled(false);
-        kv.setOnKeyboardActionListener(this);
-        kv.invalidateAllKeys();
+
         presslock = new ReentrantLock();
-        pressed = 0;
+        buttonpress_chord = 0;
+        buttonpress_current = 0;
 
         ArrayList<HuffmanNode> inp = new ArrayList<HuffmanNode>();
         inp.add(new HuffmanNode('e', 12.702));
@@ -123,23 +213,17 @@ public class Chorded extends InputMethodService
         inp.add(new HuffmanNode('z', 0.074));
         tree.CreateEncoding(inp);
         curNode = tree.root;
-        relabelKeys();
+        //relabelKeys();
         return kv;
-        */
     }
 
-    @Override
+    /*@Override
     public void onKey(int primaryCode, int[] keyCodes) {
         InputConnection ic = getCurrentInputConnection();
         //playClick(primaryCode);
         switch (primaryCode) {
-            case Keyboard.KEYCODE_DELETE:
-                ic.deleteSurroundingText(1, 0);
-                break;
             case Keyboard.KEYCODE_SHIFT:
                 caps = !caps;
-                keyboard.setShifted(caps);
-                kv.invalidateAllKeys();
                 break;
             case Keyboard.KEYCODE_DONE:
                 ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
@@ -155,118 +239,54 @@ public class Chorded extends InputMethodService
                 }
                 ic.commitText(String.valueOf(code), 1);
         }
-    }
-
-    @Override
-    public void onPress(int primaryCode) {
-        presslock.lock();
-        switch(primaryCode)
-        {
-            case 48:
-                pressed = pressed | 0b001;
-                Log.i("Chorded", "Pressed 1");
-                break;
-            case 49:
-                pressed = pressed | 0b010;
-                Log.i("Chorded", "Pressed 2");
-                break;
-            case 50:
-                pressed = pressed | 0b100;
-                Log.i("Chorded", "Pressed 3");
-                break;
-        }
-        presslock.unlock();
-    }
-
-    @Override
-    public void onRelease(int primaryCode) {
-        presslock.lock();
-        Log.i("Chorded", "Pressed release");
-        switch(primaryCode)
-        {
-            case 48:
-            case 49:
-            case 50:
-                if(curNode.children.size() >= keylookup[pressed])
-                {
-                    curNode = curNode.children.get(keylookup[pressed]);
-                    if(curNode.children.size() == 0)
-                    {
-                        // Reached the end. Commit the current letter.
-                        InputConnection ic = getCurrentInputConnection();
-                        ic.commitText(String.valueOf(curNode.thechar), 1);
-                        curNode = tree.root;
-                    } else {
-                        // Presumably indicate that a button was pressed
-                    }
-                    pressed = 0;
-                } else {
-                    // Invalid coding. Reset to root.
-                    pressed = 0;
-                    curNode = tree.root;
-                }
-                break;
-            default:
-                pressed = 0;
-                curNode = tree.root;
-        }
-        relabelKeys();
-        presslock.unlock();
-    }
+    }*/
 
     private void relabelKeys() {
-        for(Key k: keyboard.getKeys())
-        {
-            switch(k.codes[0])
-            {
-                case 48:
-                    if(curNode.children.size() >= 0)
-                    {
-                        k.label = curNode.children.get(0).allchars;
-                    } else {
-                        k.label = "";
-                    }
-                    break;
-                case 49:
-                    if(curNode.children.size() >= 1)
-                    {
-                        k.label = curNode.children.get(1).allchars;
-                    } else {
-                        k.label = "";
-                    }
-                    break;
-                case 50:
-                    if(curNode.children.size() >= 2)
-                    {
-                        k.label = curNode.children.get(2).allchars;
-                    } else {
-                        k.label = "";
-                    }
-            }
-            kv.invalidateAllKeys();
-        }
-    }
+        // bits are flipped horizontally
+        /*
+        100
+        110
+        101
+        111
+         */
+        Button chord_one = (Button) kv.findViewById(R.id.chord_one);
+        String chord_one_label = "";
+        chord_one_label += (curNode.children.size() >= keylookup[1])? curNode.children.get(keylookup[1]).allchars : "";
+        chord_one_label += (curNode.children.size() >= keylookup[3])? "\n" + curNode.children.get(keylookup[3]).allchars : "\n";
+        chord_one_label += (curNode.children.size() >= keylookup[5])? "\n" + curNode.children.get(keylookup[5]).allchars : "\n";
+        chord_one_label += (curNode.children.size() >= keylookup[7])? "\n" + curNode.children.get(keylookup[7]).allchars : "\n";
+        chord_one.setText(chord_one_label);
+        chord_one.invalidate();
 
-    @Override
-    public void onText(CharSequence text) {
-    }
+        /*
+        010
+        110
+        011
+        111
+         */
+        Button chord_two = (Button) kv.findViewById(R.id.chord_two);
+        String chord_two_label = "";
+        chord_two_label += (curNode.children.size() >= keylookup[2])? curNode.children.get(keylookup[2]).allchars : "";
+        chord_two_label += (curNode.children.size() >= keylookup[3])? "\n" + curNode.children.get(keylookup[3]).allchars : "\n";
+        chord_two_label += (curNode.children.size() >= keylookup[6])? "\n" + curNode.children.get(keylookup[6]).allchars : "\n";
+        chord_two_label += (curNode.children.size() >= keylookup[7])? "\n" + curNode.children.get(keylookup[7]).allchars : "\n";
+        chord_two.setText(chord_two_label);
+        chord_two.invalidate();
 
-    @Override
-    public void swipeDown() {
-    }
-
-    @Override
-    public void swipeLeft() {
-    }
-
-    @Override
-    public void swipeRight() {
-    }
-
-    @Override
-    public void swipeUp() {
+        /*
+        001
+        011
+        101
+        111
+         */
+        Button chord_three = (Button) kv.findViewById(R.id.chord_three);
+        String chord_three_label = "";
+        chord_three_label += (curNode.children.size() >= keylookup[4])? curNode.children.get(keylookup[4]).allchars : "";
+        chord_three_label += (curNode.children.size() >= keylookup[6])? "\n" + curNode.children.get(keylookup[6]).allchars : "\n";
+        chord_three_label += (curNode.children.size() >= keylookup[5])? "\n" + curNode.children.get(keylookup[5]).allchars : "\n";
+        chord_three_label += (curNode.children.size() >= keylookup[7])? "\n" + curNode.children.get(keylookup[7]).allchars : "\n";
+        chord_three.setText(chord_three_label);
+        chord_three.invalidate();
 
     }
-
-
 }
