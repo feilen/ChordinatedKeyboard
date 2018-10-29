@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/constraintLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:splitMotionEvents="true">
+    android:layout_height="match_parent">
 
 
     <TextView
@@ -35,8 +34,8 @@
 
     <Button
         android:id="@+id/button_backspace"
-        android:layout_width="5mm"
-        android:layout_height="5mm"
+        android:layout_width="113dp"
+        android:layout_height="33dp"
         android:layout_alignTop="@+id/chord_two"
         android:layout_alignParentStart="false"
         android:layout_marginTop="0dp"
@@ -62,8 +61,8 @@
 
     <Button
         android:id="@+id/button_return"
-        android:layout_width="5mm"
-        android:layout_height="5mm"
+        android:layout_width="113dp"
+        android:layout_height="33dp"
         android:layout_alignTop="@+id/chord_two"
         android:layout_toEndOf="@+id/button_sym"
         android:text="⏎" />
@@ -80,15 +79,15 @@
 
     <Button
         android:id="@+id/chord_one"
-        android:layout_width="249dp"
-        android:layout_height="109dp"
+        android:layout_width="146dp"
+        android:layout_height="128dp"
         android:layout_below="@+id/button_shift"
         android:layout_toStartOf="@+id/chord_two" />
 
     <Button
         android:id="@+id/chord_three"
-        android:layout_width="249dp"
-        android:layout_height="109dp"
+        android:layout_width="146dp"
+        android:layout_height="127dp"
         android:layout_below="@+id/button_shift"
         android:layout_toEndOf="@+id/chord_two" />
 

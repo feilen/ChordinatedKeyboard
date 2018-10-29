@@ -4,19 +4,14 @@ package info.tuxcat.feilen.chorded;
  * Created by feilen on 10/13/18.
  */
 
+import android.content.Context;
 import android.inputmethodservice.InputMethodService;
-import android.inputmethodservice.Keyboard;
-import android.inputmethodservice.Keyboard.Key;
-import android.inputmethodservice.KeyboardView;
-import android.inputmethodservice.KeyboardView.OnKeyboardActionListener;
-import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputConnection;
 import android.widget.Button;
-import android.widget.RelativeLayout;
+import android.os.Vibrator;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
@@ -25,9 +20,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import static info.tuxcat.feilen.chorded.Chorded.KeyboardType.TWOFINGER;
 import static info.tuxcat.feilen.chorded.Chorded.KeyboardType.THREEFINGER;
 
-public class Chorded extends InputMethodService{
+public class Chorded extends InputMethodService {
 
     private View kv;
+    Vibrator vibrator;
 
     private HuffmanTree tree;
     private HuffmanNode curNode;
@@ -115,6 +111,7 @@ public class Chorded extends InputMethodService{
                                 if(curNode.children.size() == 0)
                                 {
                                     // Reached the end. Commit the current letter.
+                                    vibrator.vibrate(15);
                                     ic = getCurrentInputConnection();
                                     char inputchar = curNode.thechar;
                                     if(caps && Character.isAlphabetic(inputchar))
@@ -181,6 +178,7 @@ public class Chorded extends InputMethodService{
         }
 
         presslock = new ReentrantLock();
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         buttonpress_chord = 0;
         buttonpress_current = 0;
 

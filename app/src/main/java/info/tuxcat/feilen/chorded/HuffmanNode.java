@@ -9,10 +9,10 @@ public class HuffmanNode {
     ArrayList<HuffmanNode> children = new ArrayList<HuffmanNode>();
     HuffmanNode(ArrayList<HuffmanNode> input)
     {
-        for(HuffmanNode node: input)
+        for(int i = input.size() - 1; i >=0; --i)
         {
-            frequency += node.frequency;
-            allchars += node.allchars;
+            frequency += input.get(i).frequency;
+            allchars += input.get(i).allchars;
         }
         children = input;
     }
