@@ -5,17 +5,19 @@ package info.tuxcat.feilen.chorded;
  */
 
 import android.content.Context;
+import android.inputmethodservice.ExtractEditText;
 import android.inputmethodservice.InputMethodService;
+import android.support.wearable.input.WearableButtons;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 import android.widget.Button;
 import android.os.Vibrator;
 
 import java.util.ArrayList;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static info.tuxcat.feilen.chorded.Chorded.KeyboardType.TWOFINGER;
 import static info.tuxcat.feilen.chorded.Chorded.KeyboardType.THREEFINGER;
@@ -23,31 +25,47 @@ import static info.tuxcat.feilen.chorded.Chorded.KeyboardType.THREEFINGER;
 public class Chorded extends InputMethodService {
 
     private View kv;
+    private InputConnection ic;
     Vibrator vibrator;
 
     private HuffmanTree tree;
     private HuffmanNode curNode;
     enum KeyboardType {TWOFINGER, THREEFINGER};
+    boolean isChorded = true;
     int buttonpress_current;
     int buttonpress_chord;
-    Lock presslock;
     KeyboardType kType = TWOFINGER;
 
     int[] keylookup;
 
     private boolean caps = false;
+    private boolean remove_views = false;
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode)
+        {
+            case KeyEvent.KEYCODE_STEM_1:
+                ic.deleteSurroundingText(1, 0);
+                updateText();
+                return true;
+            case KeyEvent.KEYCODE_STEM_2:
+                caps = !caps;
+                relabelKeys();
+                return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 
     View.OnTouchListener onPress = new View.OnTouchListener()
     {
         @Override
         public boolean onTouch(View button, MotionEvent eventtype)
         {
-            InputConnection ic = getCurrentInputConnection();
             switch(eventtype.getAction())
             {
                 case MotionEvent.ACTION_DOWN:
                 case MotionEvent.ACTION_POINTER_DOWN:
-                    presslock.lock();
                     switch(button.getId())
                     {
                         case R.id.chord_one:
@@ -67,22 +85,22 @@ public class Chorded extends InputMethodService {
                             break;
                         case R.id.button_shift:
                             caps = !caps;
+                            relabelKeys();
                             break;
                         case R.id.button_sym:
                             ic.commitText(".", 1);
                             break;
                         case R.id.button_return:
-                            ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+                            sendDefaultEditorAction(true);
                             break;
                         case R.id.button_space:
                             ic.commitText(" ",  1);
                             break;
                     }
-                    presslock.unlock();
-                    break;
+                    return true;
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_POINTER_UP:
-                    presslock.lock();
+                    if(!isChorded) break;
                     switch(button.getId())
                     {
                         case R.id.chord_one:
@@ -112,7 +130,6 @@ public class Chorded extends InputMethodService {
                                 {
                                     // Reached the end. Commit the current letter.
                                     vibrator.vibrate(15);
-                                    ic = getCurrentInputConnection();
                                     char inputchar = curNode.thechar;
                                     if(caps && Character.isAlphabetic(inputchar))
                                     {
@@ -136,48 +153,77 @@ public class Chorded extends InputMethodService {
                             curNode = tree.root;
                     }
                     relabelKeys();
-                    presslock.unlock();
-                    break;
+                    return true;
             }
-            return true;
+            return false;
         }
     };
 
     @Override
     public View onCreateInputView() {
-        //kv = (KeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
+        ic = getCurrentInputConnection();
+        int hardware_buttons_count = WearableButtons.getButtonCount(getBaseContext());
         switch(kType) {
             case TWOFINGER:
                 kv = getLayoutInflater().inflate(R.layout.twochord, null);
-                tree = new HuffmanTree(3);
-                //                     01  10  11
-                keylookup = new int[]{ -1,  0,  1,  2};
+                if(remove_views && hardware_buttons_count > 1)
+                {
+                    View bksp = kv.findViewById(R.id.button_backspace);
+                    ((ViewGroup) bksp.getParent()).removeView(bksp);
+                }
+
+                if(remove_views && hardware_buttons_count > 2)
+                {
+                    View shift = kv.findViewById(R.id.button_shift);
+                    ((ViewGroup) shift.getParent()).removeView(shift);
+                }
+
+                if (isChorded)
+                {
+                    tree = new HuffmanTree(3);
+                    //                     01  10  11
+                    keylookup = new int[]{-1, 0, 1, 2};
+                } else {
+                    tree = new HuffmanTree(2);
+                    //                     01  10  11
+                    keylookup = new int[]{-1, 0, 1};
+                }
                 break;
             case THREEFINGER:
                 kv = getLayoutInflater().inflate(R.layout.threechord, null);
-                tree = new HuffmanTree(7);
-                //                          001 010 011 100 101 110 111
-                keylookup = new int[]{ -1,  0,  1,  3,  2,  5,  4,  6};
+                if(isChorded)
+                {
+                    tree = new HuffmanTree(7);
+                    //                          001 010 011 100 101 110 111
+                    keylookup = new int[]{ -1,  0,  1,  3,  2,  5,  4,  6};
+                } else {
+                    tree = new HuffmanTree(2);
+                    //                     01  10  11
+                    keylookup = new int[]{-1, 0, 1, 2};
+                }
                 final Button chord_three = kv.findViewById(R.id.chord_three);
                 chord_three.setOnTouchListener(onPress);
                 break;
         }
         final Button button_space = kv.findViewById(R.id.button_space);
         button_space.setOnTouchListener(onPress);
-        final Button button_backspace = kv.findViewById(R.id.button_backspace);
-        button_backspace.setOnTouchListener(onPress);
-        final Button button_shift = kv.findViewById(R.id.button_shift);
-        button_shift.setOnTouchListener(onPress);
         final Button button_sym = kv.findViewById(R.id.button_sym);
         button_sym.setOnTouchListener(onPress);
         final Button button_return = kv.findViewById(R.id.button_return);
-        button_shift.setOnTouchListener(onPress);
+        button_return.setOnTouchListener(onPress);
         final Button chord_one = kv.findViewById(R.id.chord_one);
         chord_one.setOnTouchListener(onPress);
         final Button chord_two = kv.findViewById(R.id.chord_two);
         chord_two.setOnTouchListener(onPress);
+        if(!remove_views || hardware_buttons_count <= 1) {
+            final Button button_backspace = kv.findViewById(R.id.button_backspace);
+            button_backspace.setOnTouchListener(onPress);
+        }
+        if(!remove_views || hardware_buttons_count <= 2) {
+            final Button button_shift = kv.findViewById(R.id.button_shift);
+            button_shift.setOnTouchListener(onPress);
+        }
 
-        presslock = new ReentrantLock();
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         buttonpress_chord = 0;
         buttonpress_current = 0;
@@ -211,7 +257,7 @@ public class Chorded extends InputMethodService {
         inp.add(new HuffmanNode('z', 0.074));
         tree.CreateEncoding(inp);
         curNode = tree.root;
-        //relabelKeys();
+        relabelKeys();
         return kv;
     }
 
@@ -221,17 +267,43 @@ public class Chorded extends InputMethodService {
         String chord_one_label = "";
         String chord_two_label = "";
 
+        if(!isChorded)
+        {
+            chord_one_label = (curNode.children.size() >= keylookup[1])? curNode.children.get(keylookup[1]).allchars : "";
+            if(caps) chord_one_label = chord_one_label.toUpperCase();
+            chord_one.setText(chord_one_label);
+            chord_one.invalidate();
+
+            if(caps) chord_two_label = chord_two_label.toUpperCase();
+            chord_two_label = (curNode.children.size() >= keylookup[2])? curNode.children.get(keylookup[2]).allchars : "";
+            chord_two.setText(chord_two_label);
+            chord_two.invalidate();
+
+            if(kType == THREEFINGER)
+            {
+                Button chord_three = (Button) kv.findViewById(R.id.chord_three);
+                String chord_three_label = "";
+                chord_three_label = (curNode.children.size() >= keylookup[3])? curNode.children.get(keylookup[3]).allchars : "";
+                if(caps) chord_three_label = chord_three_label.toUpperCase();
+                chord_three.setText(chord_three_label);
+                chord_three.invalidate();
+            }
+            return;
+        }
+
         switch(kType) {
             case TWOFINGER:
 
 
                 chord_one_label += (curNode.children.size() >= keylookup[1])? curNode.children.get(keylookup[1]).allchars : "";
                 chord_one_label += (curNode.children.size() >= keylookup[3])? "\n" + curNode.children.get(keylookup[3]).allchars : "\n";
+                if(caps) chord_one_label = chord_one_label.toUpperCase();
                 chord_one.setText(chord_one_label);
                 chord_one.invalidate();
 
                 chord_two_label += (curNode.children.size() >= keylookup[2])? curNode.children.get(keylookup[2]).allchars : "";
                 chord_two_label += (curNode.children.size() >= keylookup[3])? "\n" + curNode.children.get(keylookup[3]).allchars : "\n";
+                if(caps) chord_two_label = chord_two_label.toUpperCase();
                 chord_two.setText(chord_two_label);
                 chord_two.invalidate();
 
@@ -248,6 +320,7 @@ public class Chorded extends InputMethodService {
                 chord_one_label += (curNode.children.size() >= keylookup[3])? "\n" + curNode.children.get(keylookup[3]).allchars : "\n";
                 chord_one_label += (curNode.children.size() >= keylookup[5])? "\n" + curNode.children.get(keylookup[5]).allchars : "\n";
                 chord_one_label += (curNode.children.size() >= keylookup[7])? "\n" + curNode.children.get(keylookup[7]).allchars : "\n";
+                if(caps) chord_one_label = chord_one_label.toUpperCase();
                 chord_one.setText(chord_one_label);
                 chord_one.invalidate();
 
@@ -261,6 +334,7 @@ public class Chorded extends InputMethodService {
                 chord_two_label += (curNode.children.size() >= keylookup[3])? "\n" + curNode.children.get(keylookup[3]).allchars : "\n";
                 chord_two_label += (curNode.children.size() >= keylookup[6])? "\n" + curNode.children.get(keylookup[6]).allchars : "\n";
                 chord_two_label += (curNode.children.size() >= keylookup[7])? "\n" + curNode.children.get(keylookup[7]).allchars : "\n";
+                if(caps) chord_two_label = chord_two_label.toUpperCase();
                 chord_two.setText(chord_two_label);
                 chord_two.invalidate();
 
@@ -276,9 +350,19 @@ public class Chorded extends InputMethodService {
                 chord_three_label += (curNode.children.size() >= keylookup[6])? "\n" + curNode.children.get(keylookup[6]).allchars : "\n";
                 chord_three_label += (curNode.children.size() >= keylookup[5])? "\n" + curNode.children.get(keylookup[5]).allchars : "\n";
                 chord_three_label += (curNode.children.size() >= keylookup[7])? "\n" + curNode.children.get(keylookup[7]).allchars : "\n";
+                if(caps) chord_three_label = chord_three_label.toUpperCase();
                 chord_three.setText(chord_three_label);
                 chord_three.invalidate();
                 break;
         }
+        updateText();
+    }
+
+    private void updateText()
+    {
+        ExtractEditText editText = kv.findViewById(R.id.inputExtractEditText);
+        ExtractedTextRequest etr=new ExtractedTextRequest();
+        etr.token=0;
+        editText.setExtractedText(ic.getExtractedText(etr, 0));
     }
 }

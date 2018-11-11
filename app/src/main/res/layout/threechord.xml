@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/constraintLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/dark_grey">
 
 
     <TextView
@@ -12,21 +13,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:text="prediction"/>
+        android:layout_centerHorizontal="true"/>
 
     <Button
         android:id="@+id/chord_two"
         android:layout_width="18mm"
         android:layout_height="19mm"
-        android:layout_below="@+id/current_text"
-        android:layout_centerHorizontal="true" />
+        android:layout_below="@+id/inputExtractEditText"
+        android:layout_centerHorizontal="true"
+        style="@style/Theme.WearDiag"/>
 
     <Button
         android:id="@+id/button_shift"
-        android:layout_width="5mm"
-        android:layout_height="5mm"
-        android:layout_below="@+id/current_text"
+        style="@android:style/ButtonBar"
+        android:layout_width="26dp"
+        android:layout_height="31dp"
+        android:layout_below="@+id/inputExtractEditText"
         android:layout_marginTop="0dp"
         android:layout_marginEnd="0dp"
         android:layout_toStartOf="@+id/chord_two"
@@ -34,43 +36,49 @@
 
     <Button
         android:id="@+id/button_backspace"
+        style="@android:style/ButtonBar"
         android:layout_width="113dp"
-        android:layout_height="33dp"
+        android:layout_height="31dp"
         android:layout_alignTop="@+id/chord_two"
         android:layout_alignParentStart="false"
         android:layout_marginTop="0dp"
         android:layout_toStartOf="@+id/button_shift"
         android:text="⌫" />
 
-    <TextView
-        android:id="@+id/current_text"
-        android:layout_width="wrap_content"
+    <android.inputmethodservice.ExtractEditText
+        android:id="@+id/inputExtractEditText"
+        android:layout_width="136dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/predicted_text"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="1mm"
-        android:text="TextView" />
+        android:layout_marginTop="6dp"
+        android:background="@color/common_google_signin_btn_text_light_pressed"
+        android:text="TextView"
+        android:textAlignment="textEnd" />
 
     <Button
         android:id="@+id/button_sym"
-        android:layout_width="5mm"
-        android:layout_height="5mm"
-        android:layout_below="@+id/current_text"
+        style="@android:style/ButtonBar"
+        android:layout_width="26dp"
+        android:layout_height="31dp"
+        android:layout_below="@+id/inputExtractEditText"
+        android:layout_marginTop="1dp"
         android:layout_toEndOf="@+id/chord_two"
         android:text="SYM" />
 
     <Button
         android:id="@+id/button_return"
+        style="@android:style/ButtonBar"
         android:layout_width="113dp"
-        android:layout_height="33dp"
+        android:layout_height="31dp"
         android:layout_alignTop="@+id/chord_two"
         android:layout_toEndOf="@+id/button_sym"
         android:text="⏎" />
 
     <Button
         android:id="@+id/button_space"
-        android:layout_width="18mm"
-        android:layout_height="5mm"
+        android:layout_width="112dp"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/chord_two"
         android:layout_centerHorizontal="true"
         android:text="␣"
@@ -82,13 +90,15 @@
         android:layout_width="146dp"
         android:layout_height="128dp"
         android:layout_below="@+id/button_shift"
-        android:layout_toStartOf="@+id/chord_two" />
+        android:layout_toStartOf="@+id/chord_two"
+        style="@style/Theme.WearDiag"/>
 
     <Button
         android:id="@+id/chord_three"
         android:layout_width="146dp"
         android:layout_height="127dp"
         android:layout_below="@+id/button_shift"
-        android:layout_toEndOf="@+id/chord_two" />
+        android:layout_toEndOf="@+id/chord_two"
+        style="@style/Theme.WearDiag"/>
 
 </RelativeLayout>
