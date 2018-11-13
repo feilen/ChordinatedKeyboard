@@ -3,7 +3,8 @@ package info.tuxcat.feilen.chorded;
 import java.util.ArrayList;
 
 public class HuffmanNode {
-    char thechar = '\0';
+    String resultString = "";
+    String displayString = "";
     String allchars = "";
     double frequency = 0.0;
     ArrayList<HuffmanNode> children = new ArrayList<HuffmanNode>();
@@ -17,9 +18,14 @@ public class HuffmanNode {
         children = input;
     }
     HuffmanNode(){}
-    HuffmanNode(char a, double b) {
-        thechar = a;
+    HuffmanNode(String a, double b, String ds) {
+        resultString = a;
+        displayString = ds;
         frequency = b;
-        allchars = Character.toString(a);
+        allchars = ds;
+    }
+    HuffmanNode(String a, double b)
+    {
+        this(a, b, a);
     }
 }

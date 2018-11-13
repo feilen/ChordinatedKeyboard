@@ -19,11 +19,14 @@ public class HuffmanTree {
     
     public void CreateEncoding(ArrayList<HuffmanNode> nodes)
     {
-        // TODO: use power to calculate
-        int nodecnt = factor * factor * factor;
+        int nodecnt = factor;
+        while(nodecnt < nodes.size())
+        {
+            nodecnt *= factor;
+        }
 
         // extend base nodes to fill empty nodes into slots
-        while(nodes.size() != nodecnt)
+        while(nodes.size() < nodecnt)
         {
             nodes.add(new HuffmanNode());
         }
@@ -65,28 +68,6 @@ public class HuffmanTree {
 
         root = nodes.get(0);
     }
-    
-    public void PrintEncoding()
-    {
-        PrintEncoding(root, "", 0);
-    }
-
-    public void PrintEncoding(HuffmanNode n, String s, int depth) {
-        if(n.children.size() == 0)
-        {
-            if(n.thechar != '\0')
-            {
-                System.out.print(s);
-                System.out.print(' ');
-                System.out.println(n.thechar);
-            }
-        } else {
-            for(int i = 0; i < factor; i++)
-            {
-                PrintEncoding(n.children.get(i), s + Integer.toString(i + 1), depth + 1);
-            }
-        }
-    }
 
     public static void main(String[] args)
     {
@@ -96,34 +77,34 @@ public class HuffmanTree {
 
     public void run() {
         ArrayList<HuffmanNode> inp = new ArrayList<HuffmanNode>();
-        inp.add(new HuffmanNode('e', 12.702));
-        inp.add(new HuffmanNode('t', 9.056));
-        inp.add(new HuffmanNode('a', 8.167));
-        inp.add(new HuffmanNode('o', 7.507));
-        inp.add(new HuffmanNode('i', 6.966));
-        inp.add(new HuffmanNode('n', 6.749));
-        inp.add(new HuffmanNode('s', 6.327));
-        inp.add(new HuffmanNode('h', 6.094));
-        inp.add(new HuffmanNode('r', 5.987));
-        inp.add(new HuffmanNode('d', 4.253));
-        inp.add(new HuffmanNode('l', 4.025));
-        inp.add(new HuffmanNode('c', 2.782));
-        inp.add(new HuffmanNode('u', 2.758));
-        inp.add(new HuffmanNode('m', 2.406));
-        inp.add(new HuffmanNode('w', 2.360));
-        inp.add(new HuffmanNode('f', 2.228));
-        inp.add(new HuffmanNode('g', 2.015));
-        inp.add(new HuffmanNode('y', 1.974));
-        inp.add(new HuffmanNode('p', 1.929));
-        inp.add(new HuffmanNode('b', 1.492));
-        inp.add(new HuffmanNode('v', 0.978));
-        inp.add(new HuffmanNode('k', 0.772));
-        inp.add(new HuffmanNode('j', 0.153));
-        inp.add(new HuffmanNode('x', 0.150));
-        inp.add(new HuffmanNode('q', 0.095));
-        inp.add(new HuffmanNode('z', 0.074));
+        inp.add(new HuffmanNode("e", 12.702));
+        inp.add(new HuffmanNode("t", 9.056));
+        inp.add(new HuffmanNode("a", 8.167));
+        inp.add(new HuffmanNode("o", 7.507));
+        inp.add(new HuffmanNode("i", 6.966));
+        inp.add(new HuffmanNode("n", 6.749));
+        inp.add(new HuffmanNode("s", 6.327));
+        inp.add(new HuffmanNode("h", 6.094));
+        inp.add(new HuffmanNode("r", 5.987));
+        inp.add(new HuffmanNode("d", 4.253));
+        inp.add(new HuffmanNode("l", 4.025));
+        inp.add(new HuffmanNode("c", 2.782));
+        inp.add(new HuffmanNode("u", 2.758));
+        inp.add(new HuffmanNode("m", 2.406));
+        inp.add(new HuffmanNode("w", 2.360));
+        inp.add(new HuffmanNode("f", 2.228));
+        inp.add(new HuffmanNode("g", 2.015));
+        inp.add(new HuffmanNode("y", 1.974));
+        inp.add(new HuffmanNode("p", 1.929));
+        inp.add(new HuffmanNode("b", 1.492));
+        inp.add(new HuffmanNode("v", 0.978));
+        inp.add(new HuffmanNode("k", 0.772));
+        inp.add(new HuffmanNode("j", 0.153));
+        inp.add(new HuffmanNode("x", 0.150));
+        inp.add(new HuffmanNode("q", 0.095));
+        inp.add(new HuffmanNode("z", 0.074));
         this.CreateEncoding(inp);
-        this.PrintEncoding();
+        //this.PrintEncoding();
     }
 }
 

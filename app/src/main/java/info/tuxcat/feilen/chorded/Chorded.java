@@ -12,6 +12,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 import android.widget.Button;
@@ -29,6 +30,7 @@ public class Chorded extends InputMethodService {
     Vibrator vibrator;
 
     private HuffmanTree tree;
+    private HuffmanTree sym_tree;
     private HuffmanNode curNode;
     enum KeyboardType {TWOFINGER, THREEFINGER};
     boolean isChorded = true;
@@ -38,7 +40,7 @@ public class Chorded extends InputMethodService {
 
     int[] keylookup;
 
-    private boolean caps = false;
+    private boolean caps = true;
     private boolean remove_views = false;
 
     @Override
@@ -46,8 +48,14 @@ public class Chorded extends InputMethodService {
         switch (keyCode)
         {
             case KeyEvent.KEYCODE_STEM_1:
-                ic.deleteSurroundingText(1, 0);
-                updateText();
+                if(curNode != tree.root) {
+                    curNode = tree.root;
+                    buttonpress_chord = 0;
+                    relabelKeys();
+                } else {
+                    ic.deleteSurroundingText(1, 0);
+                    updateText();
+                }
                 return true;
             case KeyEvent.KEYCODE_STEM_2:
                 caps = !caps;
@@ -55,6 +63,11 @@ public class Chorded extends InputMethodService {
                 return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onEvaluateFullscreenMode() {
+        return true;
     }
 
     View.OnTouchListener onPress = new View.OnTouchListener()
@@ -81,14 +94,18 @@ public class Chorded extends InputMethodService {
                             buttonpress_chord = buttonpress_chord | 0b100;
                             break;
                         case R.id.button_backspace:
-                            ic.deleteSurroundingText(1, 0);
+                            if(curNode == tree.root)
+                            {
+                                ic.deleteSurroundingText(1, 0);
+                            }
                             break;
                         case R.id.button_shift:
                             caps = !caps;
                             relabelKeys();
                             break;
                         case R.id.button_sym:
-                            ic.commitText(".", 1);
+                            curNode = sym_tree.root;
+                            relabelKeys();
                             break;
                         case R.id.button_return:
                             sendDefaultEditorAction(true);
@@ -130,10 +147,10 @@ public class Chorded extends InputMethodService {
                                 {
                                     // Reached the end. Commit the current letter.
                                     vibrator.vibrate(15);
-                                    char inputchar = curNode.thechar;
-                                    if(caps && Character.isAlphabetic(inputchar))
+                                    String inputchar = curNode.resultString;
+                                    if(caps && inputchar.length() == 1 && Character.isAlphabetic(inputchar.charAt(0)))
                                     {
-                                        inputchar = Character.toUpperCase(inputchar);
+                                        inputchar = inputchar.toUpperCase();
                                         caps = !caps;
                                     }
                                     ic.commitText(String.valueOf(inputchar), 1);
@@ -148,11 +165,14 @@ public class Chorded extends InputMethodService {
                                 curNode = tree.root;
                             }
                             break;
+                        case R.id.button_sym:
+                            break;
                         default:
                             buttonpress_chord = 0;
                             curNode = tree.root;
                     }
                     relabelKeys();
+                    updateText();
                     return true;
             }
             return false;
@@ -181,9 +201,11 @@ public class Chorded extends InputMethodService {
                 if (isChorded)
                 {
                     tree = new HuffmanTree(3);
+                    sym_tree = new HuffmanTree(3);
                     //                     01  10  11
                     keylookup = new int[]{-1, 0, 1, 2};
                 } else {
+                    sym_tree = new HuffmanTree(2);
                     tree = new HuffmanTree(2);
                     //                     01  10  11
                     keylookup = new int[]{-1, 0, 1};
@@ -193,10 +215,12 @@ public class Chorded extends InputMethodService {
                 kv = getLayoutInflater().inflate(R.layout.threechord, null);
                 if(isChorded)
                 {
+                    sym_tree = new HuffmanTree(7);
                     tree = new HuffmanTree(7);
                     //                          001 010 011 100 101 110 111
                     keylookup = new int[]{ -1,  0,  1,  3,  2,  5,  4,  6};
                 } else {
+                    sym_tree = new HuffmanTree(2);
                     tree = new HuffmanTree(2);
                     //                     01  10  11
                     keylookup = new int[]{-1, 0, 1, 2};
@@ -229,35 +253,69 @@ public class Chorded extends InputMethodService {
         buttonpress_current = 0;
 
         ArrayList<HuffmanNode> inp = new ArrayList<HuffmanNode>();
-        inp.add(new HuffmanNode('e', 12.702));
-        inp.add(new HuffmanNode('t', 9.056));
-        inp.add(new HuffmanNode('a', 8.167));
-        inp.add(new HuffmanNode('o', 7.507));
-        inp.add(new HuffmanNode('i', 6.966));
-        inp.add(new HuffmanNode('n', 6.749));
-        inp.add(new HuffmanNode('s', 6.327));
-        inp.add(new HuffmanNode('h', 6.094));
-        inp.add(new HuffmanNode('r', 5.987));
-        inp.add(new HuffmanNode('d', 4.253));
-        inp.add(new HuffmanNode('l', 4.025));
-        inp.add(new HuffmanNode('c', 2.782));
-        inp.add(new HuffmanNode('u', 2.758));
-        inp.add(new HuffmanNode('m', 2.406));
-        inp.add(new HuffmanNode('w', 2.360));
-        inp.add(new HuffmanNode('f', 2.228));
-        inp.add(new HuffmanNode('g', 2.015));
-        inp.add(new HuffmanNode('y', 1.974));
-        inp.add(new HuffmanNode('p', 1.929));
-        inp.add(new HuffmanNode('b', 1.492));
-        inp.add(new HuffmanNode('v', 0.978));
-        inp.add(new HuffmanNode('k', 0.772));
-        inp.add(new HuffmanNode('j', 0.153));
-        inp.add(new HuffmanNode('x', 0.150));
-        inp.add(new HuffmanNode('q', 0.095));
-        inp.add(new HuffmanNode('z', 0.074));
+        inp.add(new HuffmanNode("e", 12.702));
+        inp.add(new HuffmanNode("t", 9.056));
+        inp.add(new HuffmanNode("a", 8.167));
+        inp.add(new HuffmanNode("o", 7.507));
+        inp.add(new HuffmanNode("i", 6.966));
+        inp.add(new HuffmanNode("n", 6.749));
+        inp.add(new HuffmanNode("s", 6.327));
+        inp.add(new HuffmanNode("h", 6.094));
+        inp.add(new HuffmanNode("r", 5.987));
+        inp.add(new HuffmanNode("d", 4.253));
+        inp.add(new HuffmanNode("l", 4.025));
+        inp.add(new HuffmanNode("c", 2.782));
+        inp.add(new HuffmanNode("u", 2.758));
+        inp.add(new HuffmanNode("m", 2.406));
+        inp.add(new HuffmanNode("w", 2.360));
+        inp.add(new HuffmanNode("f", 2.228));
+        inp.add(new HuffmanNode("g", 2.015));
+        inp.add(new HuffmanNode("y", 1.974));
+        inp.add(new HuffmanNode("p", 1.929));
+        inp.add(new HuffmanNode("b", 1.492));
+        inp.add(new HuffmanNode("v", 0.978));
+        inp.add(new HuffmanNode("k", 0.772));
+        inp.add(new HuffmanNode("j", 0.153));
+        inp.add(new HuffmanNode("x", 0.150));
+        inp.add(new HuffmanNode("q", 0.095));
+        inp.add(new HuffmanNode("z", 0.074));
         tree.CreateEncoding(inp);
+
+        ArrayList<HuffmanNode> sym_inp = new ArrayList<HuffmanNode>();
+        sym_inp.add(new HuffmanNode(". ", 5.0, "."));
+        sym_inp.add(new HuffmanNode("! ", 2.0, "!"));
+        sym_inp.add(new HuffmanNode("? ", 2.0, "?"));
+        sym_inp.add(new HuffmanNode("0", 0.6));
+        sym_inp.add(new HuffmanNode("1", 0.6));
+        sym_inp.add(new HuffmanNode("2", 0.5));
+        sym_inp.add(new HuffmanNode("3", 0.5));
+        sym_inp.add(new HuffmanNode("4", 0.5));
+        sym_inp.add(new HuffmanNode("5", 0.5));
+        sym_inp.add(new HuffmanNode("6", 0.5));
+        sym_inp.add(new HuffmanNode("7", 0.5));
+        sym_inp.add(new HuffmanNode("8", 0.5));
+        sym_inp.add(new HuffmanNode("9", 0.5));
+        sym_inp.add(new HuffmanNode("@", 0.25));
+        sym_inp.add(new HuffmanNode("#", 0.25));
+        sym_inp.add(new HuffmanNode("$", 0.25));
+        sym_inp.add(new HuffmanNode("%", 0.25));
+        sym_inp.add(new HuffmanNode("^", 0.25));
+        sym_inp.add(new HuffmanNode("&", 0.25));
+        sym_inp.add(new HuffmanNode("*", 0.25));
+        sym_inp.add(new HuffmanNode("(", 0.25));
+        sym_inp.add(new HuffmanNode(")", 0.25));
+        sym_inp.add(new HuffmanNode("-", 0.25));
+        sym_inp.add(new HuffmanNode("_", 0.25));
+        sym_inp.add(new HuffmanNode(":", 0.25));
+        sym_inp.add(new HuffmanNode(";", 0.25));
+        sym_inp.add(new HuffmanNode("/", 0.25));
+        sym_inp.add(new HuffmanNode("|", 0.25));
+        sym_inp.add(new HuffmanNode("\\", 0.25));
+        sym_tree.CreateEncoding(sym_inp);
+
         curNode = tree.root;
         relabelKeys();
+        updateText();
         return kv;
     }
 
@@ -310,12 +368,12 @@ public class Chorded extends InputMethodService {
                 break;
             case THREEFINGER:
                 // bits are flipped horizontally
-        /*
-        100
-        110
-        101
-        111
-         */
+
+        //100
+        //110
+        //101
+        //111
+
                 chord_one_label += (curNode.children.size() >= keylookup[1])? curNode.children.get(keylookup[1]).allchars : "";
                 chord_one_label += (curNode.children.size() >= keylookup[3])? "\n" + curNode.children.get(keylookup[3]).allchars : "\n";
                 chord_one_label += (curNode.children.size() >= keylookup[5])? "\n" + curNode.children.get(keylookup[5]).allchars : "\n";
@@ -324,12 +382,12 @@ public class Chorded extends InputMethodService {
                 chord_one.setText(chord_one_label);
                 chord_one.invalidate();
 
-        /*
-        010
-        110
-        011
-        111
-         */
+
+        //010
+        //110
+        //011
+        //111
+
                 chord_two_label += (curNode.children.size() >= keylookup[2])? curNode.children.get(keylookup[2]).allchars : "";
                 chord_two_label += (curNode.children.size() >= keylookup[3])? "\n" + curNode.children.get(keylookup[3]).allchars : "\n";
                 chord_two_label += (curNode.children.size() >= keylookup[6])? "\n" + curNode.children.get(keylookup[6]).allchars : "\n";
@@ -338,12 +396,12 @@ public class Chorded extends InputMethodService {
                 chord_two.setText(chord_two_label);
                 chord_two.invalidate();
 
-        /*
-        001
-        011
-        101
-        111
-         */
+
+        //001
+        //011
+        //101
+        //111
+
                 Button chord_three = (Button) kv.findViewById(R.id.chord_three);
                 String chord_three_label = "";
                 chord_three_label += (curNode.children.size() >= keylookup[4])? curNode.children.get(keylookup[4]).allchars : "";
@@ -355,7 +413,6 @@ public class Chorded extends InputMethodService {
                 chord_three.invalidate();
                 break;
         }
-        updateText();
     }
 
     private void updateText()

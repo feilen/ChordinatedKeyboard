@@ -1,104 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/constraintLayout"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_grey">
-
+    android:animateLayoutChanges="false"
+    android:background="@color/black"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/predicted_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"/>
+        android:layout_width="20sp"
+        android:layout_height="20sp"
+        android:layout_weight="0" />
 
-    <Button
-        android:id="@+id/chord_two"
-        android:layout_width="18mm"
-        android:layout_height="19mm"
-        android:layout_below="@+id/inputExtractEditText"
-        android:layout_centerHorizontal="true"
-        style="@style/Theme.WearDiag"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="20sp"
+        android:layout_weight="0"
+        android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/button_shift"
-        style="@android:style/ButtonBar"
-        android:layout_width="26dp"
-        android:layout_height="31dp"
-        android:layout_below="@+id/inputExtractEditText"
-        android:layout_marginTop="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_toStartOf="@+id/chord_two"
-        android:text="⇧" />
+        <Space
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
 
-    <Button
-        android:id="@+id/button_backspace"
-        style="@android:style/ButtonBar"
-        android:layout_width="113dp"
-        android:layout_height="31dp"
-        android:layout_alignTop="@+id/chord_two"
-        android:layout_alignParentStart="false"
-        android:layout_marginTop="0dp"
-        android:layout_toStartOf="@+id/button_shift"
-        android:text="⌫" />
+        <android.inputmethodservice.ExtractEditText
+            android:id="@+id/inputExtractEditText"
+            android:layout_width="140dp"
+            android:layout_height="fill_parent"
+            android:background="@color/common_google_signin_btn_text_light_pressed"
+            android:text="TextView"
+            android:maxLines="1"
+            android:inputType="text"
+            android:textAlignment="textEnd"
+            android:textSize="18sp" />
 
-    <android.inputmethodservice.ExtractEditText
-        android:id="@+id/inputExtractEditText"
-        android:layout_width="136dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/predicted_text"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="6dp"
-        android:background="@color/common_google_signin_btn_text_light_pressed"
-        android:text="TextView"
-        android:textAlignment="textEnd" />
+        <Space
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
 
-    <Button
-        android:id="@+id/button_sym"
-        style="@android:style/ButtonBar"
-        android:layout_width="26dp"
-        android:layout_height="31dp"
-        android:layout_below="@+id/inputExtractEditText"
-        android:layout_marginTop="1dp"
-        android:layout_toEndOf="@+id/chord_two"
-        android:text="SYM" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/button_return"
-        style="@android:style/ButtonBar"
-        android:layout_width="113dp"
-        android:layout_height="31dp"
-        android:layout_alignTop="@+id/chord_two"
-        android:layout_toEndOf="@+id/button_sym"
-        android:text="⏎" />
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-    <Button
-        android:id="@+id/button_space"
-        android:layout_width="112dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/chord_two"
-        android:layout_centerHorizontal="true"
-        android:text="␣"
-        android:textAlignment="center"
-        android:textAllCaps="false" />
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="30dp"
+                android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/chord_one"
-        android:layout_width="146dp"
-        android:layout_height="128dp"
-        android:layout_below="@+id/button_shift"
-        android:layout_toStartOf="@+id/chord_two"
-        style="@style/Theme.WearDiag"/>
+                <Button
+                    android:id="@+id/button_backspace"
+                    style="@android:style/DeviceDefault.ButtonBar"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1"
+                    android:text="⌫" />
 
-    <Button
-        android:id="@+id/chord_three"
-        android:layout_width="146dp"
-        android:layout_height="127dp"
-        android:layout_below="@+id/button_shift"
-        android:layout_toEndOf="@+id/chord_two"
-        style="@style/Theme.WearDiag"/>
+                <Button
+                    android:id="@+id/button_shift"
+                    style="@android:style/DeviceDefault.ButtonBar"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1"
+                    android:text="⇧" />
+            </LinearLayout>
 
-</RelativeLayout>
+            <Button
+                android:id="@+id/chord_one"
+                style="@style/Theme.WearDiag"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="22mm"
+            android:layout_height="fill_parent"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/chord_two"
+                style="@style/Theme.WearDiag"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/button_space"
+                style="@android:style/DeviceDefault.ButtonBar"
+                android:layout_width="fill_parent"
+                android:layout_height="30dp"
+                android:text="␣"
+                android:textAlignment="center"
+                android:textAllCaps="false" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="30dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/button_sym"
+                    style="@android:style/DeviceDefault.ButtonBar"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1"
+                    android:text="SYM" />
+
+                <Button
+                    android:id="@+id/button_return"
+                    style="@android:style/DeviceDefault.ButtonBar"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1"
+                    android:text="⏎" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/chord_three"
+                style="@style/Theme.WearDiag"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

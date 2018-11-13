@@ -11,6 +11,9 @@
         android:theme="@android:style/Theme.DeviceDefault">
 
 
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="true" />
         <service android:name=".Chorded"
             android:label="@string/chorded"
             android:permission="android.permission.BIND_INPUT_METHOD"

@@ -31,9 +31,10 @@
             android:id="@+id/inputExtractEditText"
             android:layout_width="140dp"
             android:layout_height="fill_parent"
-            android:layout_gravity="center_horizontal"
             android:background="@color/common_google_signin_btn_text_light_pressed"
             android:text="TextView"
+            android:maxLines="1"
+            android:inputType="text"
             android:textAlignment="textEnd"
             android:textSize="18sp" />
 
@@ -47,7 +48,7 @@
         android:id="@+id/horizon_layout"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:layout_weight="2"
+        android:layout_weight="1"
         android:orientation="horizontal">
 
         <Button
