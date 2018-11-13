@@ -5,7 +5,6 @@ import java.util.ArrayList;
 public class HuffmanNode {
     String resultString = "";
     String displayString = "";
-    String allchars = "";
     double frequency = 0.0;
     ArrayList<HuffmanNode> children = new ArrayList<HuffmanNode>();
     HuffmanNode(ArrayList<HuffmanNode> input)
@@ -13,7 +12,7 @@ public class HuffmanNode {
         for(int i = input.size() - 1; i >=0; --i)
         {
             frequency += input.get(i).frequency;
-            allchars += input.get(i).allchars;
+            displayString += input.get(i).displayString;
         }
         children = input;
     }
@@ -22,7 +21,6 @@ public class HuffmanNode {
         resultString = a;
         displayString = ds;
         frequency = b;
-        allchars = ds;
     }
     HuffmanNode(String a, double b)
     {
