@@ -55,12 +55,28 @@
             android:layout_weight="0"
             android:text="INVISIBLEHACK1234567890" />
 
-        <Button
-            android:id="@+id/chord_one"
-            style="@style/Theme.WearDiag"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/chord_one"
+                style="@style/Theme.WearDiag"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/chord_three"
+                style="@style/Theme.WearDiag"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="26dp"
@@ -100,24 +116,41 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="⏎" />
+
+            <Button
+                android:id="@+id/button_space"
+                style="@android:style/DeviceDefault.ButtonBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="0dp"
+                android:layout_marginTop="0dp"
+                android:layout_weight="1"
+                android:text="␣" />
         </LinearLayout>
 
-        <Button
-            android:id="@+id/chord_two"
-            style="@style/Theme.WearDiag"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1" />
-    </LinearLayout>
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-    <Button
-        android:id="@+id/button_space"
-        style="@android:style/DeviceDefault.ButtonBar"
-        android:layout_width="match_parent"
-        android:layout_height="38dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="0dp"
-        android:layout_weight="0"
-        android:text="␣" />
+            <Button
+                android:id="@+id/chord_two"
+                style="@style/Theme.WearDiag"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/chord_four"
+                style="@style/Theme.WearDiag"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

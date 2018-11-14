@@ -6,13 +6,13 @@ public class HuffmanNode {
     String resultString = "";
     String displayString = "";
     double frequency = 0.0;
-    ArrayList<HuffmanNode> children = new ArrayList<HuffmanNode>();
+    ArrayList<HuffmanNode> children = new ArrayList<>();
     HuffmanNode(ArrayList<HuffmanNode> input)
     {
-        for(int i = input.size() - 1; i >=0; --i)
+        for(HuffmanNode inputNode: input)
         {
-            frequency += input.get(i).frequency;
-            displayString += input.get(i).displayString;
+            frequency += inputNode.frequency;
+            displayString += inputNode.displayString;
         }
         children = input;
     }
