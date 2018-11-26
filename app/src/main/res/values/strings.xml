@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Chorded</string>
-    <string name="chorded">Chorded</string>
+    <string name="app_name">Chordinated Keyboard</string>
     <string name="subtype_en_US">English (US)</string>
+    <string name="enter_symbol">⏎</string>
 </resources>

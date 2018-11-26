@@ -7,14 +7,12 @@ import android.support.wearable.input.WearableButtons;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 import android.widget.Button;
 import android.os.Vibrator;
-import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 
@@ -30,6 +28,17 @@ public class Chorded extends InputMethodService {
     private int buttonpress_current;
     private int buttonpress_chord;
     private int[] keylookup;
+
+    // Settings: eventually populate from user config
+    private final KeyboardType kType = KeyboardType.TWOXTWOFINGERNOSTRETCH;
+    private final boolean space_in_tree = false;
+    private final boolean sym_in_tree = false;
+    private final float comfort_angle = -20.0f;
+
+    // Current vars
+    private boolean caps = true;
+    private boolean sym = false;
+
     enum KeyboardType {
         TWOFINGER,
         THREEFINGER,
@@ -75,15 +84,6 @@ public class Chorded extends InputMethodService {
         return (float)Math.sqrt((n1 * n1) + (n2 * n2));
     }
 
-    private final KeyboardType kType = KeyboardType.TWOXTWOFINGERNOSTRETCH;
-    private final boolean use_swipes = true;
-    private final boolean space_in_tree = false;
-    private final boolean sym_in_tree = false;
-    private final float comfort_angle = -20.0f;
-
-    private boolean caps = true;
-    private boolean sym = false;
-
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode)
@@ -106,7 +106,6 @@ public class Chorded extends InputMethodService {
             relabelKeys();
         } else {
             ic.deleteSurroundingText(1, 0);
-            updateText();
         }
     }
 
@@ -119,7 +118,6 @@ public class Chorded extends InputMethodService {
     private void performSpace()
     {
         ic.commitText(" ",  1);
-        updateText();
     }
 
     private void toggleSym()
@@ -175,29 +173,27 @@ public class Chorded extends InputMethodService {
                     return true;
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_POINTER_UP:
-                    if(use_swipes) {
-                        float swipeX = eventtype.getX() - downX, swipeY = eventtype.getY() - downY;
-                        float swipe_length = norm(swipeX, swipeY);
-                        if (swipe_length >= kv.getWidth() / 3.0) {
-                            // Detected a viable swipe.
-                            switch (toSwipeDirection(swipeX, swipeY)) {
-                                case UP:
-                                    performShift();
-                                    break;
-                                case DOWN:
-                                    toggleSym();
-                                    break;
-                                case LEFT:
-                                    performBackspace();
-                                    break;
-                                case RIGHT:
-                                    performSpace();
-                                    break;
-                            }
-                            buttonpress_current = 0;
-                            buttonpress_chord = 0;
-                            break;
+                    float swipeX = eventtype.getX() - downX, swipeY = eventtype.getY() - downY;
+                    float swipe_length = norm(swipeX, swipeY);
+                    if (swipe_length >= kv.getWidth() / 4.0f) {
+                        // Detected a viable swipe.
+                        switch (toSwipeDirection(swipeX, swipeY)) {
+                            case UP:
+                                performShift();
+                                break;
+                            case DOWN:
+                                toggleSym();
+                                break;
+                            case LEFT:
+                                performBackspace();
+                                break;
+                            case RIGHT:
+                                performSpace();
+                                break;
                         }
+                        buttonpress_current = 0;
+                        buttonpress_chord = 0;
+                        break;
                     }
                     switch(button.getId()) {
                         case R.id.chord_one:
@@ -235,19 +231,16 @@ public class Chorded extends InputMethodService {
                                     }
                                     ic.commitText(String.valueOf(inputchar), 1);
                                     resetRoot();
-                                    relabelKeys();
-                                    updateText();
                                 } else {
                                     vibrator.vibrate(15);
-                                    relabelKeys();
                                 }
                                 buttonpress_chord = 0;
                             } else {
                                 // Invalid coding. Reset to root.
                                 buttonpress_chord = 0;
                                 resetRoot();
-                                relabelKeys();
                             }
+                            relabelKeys();
                             break;
                         default:
                             buttonpress_chord = 0;
@@ -428,6 +421,7 @@ public class Chorded extends InputMethodService {
     public void onStartInput(EditorInfo attribute, boolean restarting) {
         caps = true;
         sym = false;
+        ic =  getCurrentInputConnection();
         super.onStartInput(attribute, restarting);
     }
 
@@ -435,7 +429,7 @@ public class Chorded extends InputMethodService {
     public void onStartInputView(EditorInfo info, boolean restarting) {
         resetRoot();
         relabelKeys();
-        updateText();
+        resetText();
         super.onStartInputView(info, restarting);
     }
 
@@ -497,7 +491,14 @@ public class Chorded extends InputMethodService {
         }
     }
 
-    private void updateText()
+    @Override
+    public void onUpdateExtractedText(int token, ExtractedText text) {
+        ExtractEditText editText = kv.findViewById(R.id.inputExtractEditText);
+        editText.setExtractedText(text);
+        super.onUpdateExtractedText(token, text);
+    }
+
+    private void resetText()
     {
         ExtractEditText editText = kv.findViewById(R.id.inputExtractEditText);
         ExtractedTextRequest etr=new ExtractedTextRequest();

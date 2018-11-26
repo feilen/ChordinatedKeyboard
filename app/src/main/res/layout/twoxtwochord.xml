@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="30dp"
         android:layout_weight="0"
-        android:text="⏎" />
+        android:text="@string/enter_symbol" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -32,7 +32,6 @@
             android:background="@color/common_google_signin_btn_text_light_pressed"
             android:inputType="text"
             android:maxLines="1"
-            android:text="TextView"
             android:textAlignment="textEnd"
             android:textSize="18sp" />
 
