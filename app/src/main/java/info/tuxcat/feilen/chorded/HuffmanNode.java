@@ -2,7 +2,7 @@ package info.tuxcat.feilen.chorded;
 
 import java.util.ArrayList;
 
-public class HuffmanNode {
+class HuffmanNode {
     String resultString = "";
     String displayString = "";
     double frequency = 0.0;

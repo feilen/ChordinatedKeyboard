@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,11 +8,13 @@
     android:background="@color/black"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/predicted_text"
-        android:layout_width="20sp"
-        android:layout_height="20sp"
-        android:layout_weight="0" />
+    <Button
+        android:id="@+id/button_return"
+        style="@android:style/DeviceDefault.ButtonBar"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_weight="0"
+        android:text="⏎" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -52,108 +55,34 @@
             android:id="@+id/button"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:text="UGLYHACK1234567890" />
+            android:text="UGLYHACK1234567890"
+            tools:ignore="Suspicious0dp" />
 
-        <LinearLayout
+        <Button
+            android:id="@+id/chord_one"
+            style="@style/Theme.WearDiag"
             android:layout_width="fill_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="30dp"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/button_backspace"
-                    style="@android:style/DeviceDefault.ButtonBar"
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent"
-                    android:layout_weight="0.75"
-                    android:text="⌫" />
-
-                <Button
-                    android:id="@+id/button_sym"
-                    style="@android:style/DeviceDefault.ButtonBar"
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent"
-                    android:layout_weight="1"
-                    android:text="SYM" />
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/chord_one"
-                style="@style/Theme.WearDiag"
-                android:layout_width="fill_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:textSize="8sp" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="90dp"
             android:layout_height="fill_parent"
-            android:orientation="vertical">
-
-            <Button
-                android:id="@+id/chord_two"
-                style="@style/Theme.WearDiag"
-                android:layout_width="fill_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:textSize="12sp" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:textSize="8sp"
+            tools:ignore="SmallSp" />
 
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="30dp"
-                android:orientation="horizontal">
+        <Button
+            android:id="@+id/chord_two"
+            style="@style/Theme.WearDiag"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:textSize="12sp" />
 
-                <Button
-                    android:id="@+id/button_shift"
-                    style="@android:style/DeviceDefault.ButtonBar"
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent"
-                    android:layout_weight="1"
-                    android:text="⇧" />
-
-                <Button
-                    android:id="@+id/button_return"
-                    style="@android:style/DeviceDefault.ButtonBar"
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent"
-                    android:layout_weight="0.75"
-                    android:text="⏎" />
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/chord_three"
-                style="@style/Theme.WearDiag"
-                android:layout_width="fill_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:textSize="8sp" />
-
-        </LinearLayout>
+        <Button
+            android:id="@+id/chord_three"
+            style="@style/Theme.WearDiag"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:textSize="8sp" />
 
     </LinearLayout>
-
-    <Button
-        android:id="@+id/button_space"
-        style="@android:style/DeviceDefault.ButtonBar"
-        android:layout_width="fill_parent"
-        android:layout_height="30dp"
-        android:text="␣"
-        android:textAlignment="center"
-        android:textAllCaps="false" />
 
 </LinearLayout>

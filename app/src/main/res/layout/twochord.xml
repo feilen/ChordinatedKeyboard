@@ -8,11 +8,13 @@
     android:orientation="vertical">
 
 
-    <TextView
-        android:id="@+id/predicted_text"
-        android:layout_width="20sp"
-        android:layout_height="20sp"
-        android:layout_weight="0" />
+    <Button
+        android:id="@+id/button_return"
+        style="@android:style/DeviceDefault.ButtonBar"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_weight="0"
+        android:text="⏎" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -62,46 +64,6 @@
             android:layout_height="match_parent"
             android:layout_weight="1" />
 
-        <LinearLayout
-            android:layout_width="26dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0"
-            android:orientation="vertical">
-
-            <Button
-                android:id="@+id/button_backspace"
-                style="@android:style/DeviceDefault.ButtonBar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="⌫"
-                android:textAlignment="center" />
-
-            <Button
-                android:id="@+id/button_shift"
-                style="@android:style/DeviceDefault.ButtonBar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="⇧" />
-
-            <Button
-                android:id="@+id/button_sym"
-                style="@android:style/DeviceDefault.ButtonBar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="SYM" />
-
-            <Button
-                android:id="@+id/button_return"
-                style="@android:style/DeviceDefault.ButtonBar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="⏎" />
-        </LinearLayout>
-
         <Button
             android:id="@+id/chord_two"
             style="@style/Theme.WearDiag"
@@ -109,15 +71,4 @@
             android:layout_height="match_parent"
             android:layout_weight="1" />
     </LinearLayout>
-
-    <Button
-        android:id="@+id/button_space"
-        style="@android:style/DeviceDefault.ButtonBar"
-        android:layout_width="match_parent"
-        android:layout_height="38dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="0dp"
-        android:layout_weight="0"
-        android:text="␣" />
-
 </LinearLayout>
