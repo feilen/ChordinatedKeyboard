@@ -47,16 +47,33 @@ public class Chorded extends InputMethodService {
     }
 
     enum SwipeDirection {
-        UP,
-        DOWN,
-        LEFT,
-        RIGHT
+        NONE,
+        SHORT_UP,
+        SHORT_DOWN,
+        SHORT_LEFT,
+        SHORT_RIGHT,
+        LONG_UP,
+        LONG_DOWN,
+        LONG_LEFT,
+        LONG_RIGHT
     }
 
-    private SwipeDirection toSwipeDirection(float deltaX, float deltaY)
+    private static float norm(float n1, float n2)
     {
-        double direction = Math.atan2((double)deltaX, (double)deltaY) * (180/Math.PI);
-        direction += comfort_angle;
+        return (float)Math.sqrt((n1 * n1) + (n2 * n2));
+    }
+
+    private SwipeDirection toSwipeDirection(float deltaX, float deltaY, float swipeThresholdSmall, float swipeThresholdBig)
+    {
+        float swipe_length = norm(deltaX, deltaY);
+        if(swipe_length < swipeThresholdSmall)
+        {
+            return SwipeDirection.NONE;
+        }
+
+        double direction = Math.atan2((double)deltaX, (double)deltaY) * (180/Math.PI) + comfort_angle;
+        boolean long_swipe = swipe_length < swipeThresholdBig;
+
         if(direction > 180.0)
         {
             direction -= 360.0;
@@ -64,24 +81,20 @@ public class Chorded extends InputMethodService {
         {
             direction += 360.0;
         }
+
         if(direction >= 45.0 && direction < 135.0)
         {
-            return SwipeDirection.RIGHT;
+            return long_swipe ? SwipeDirection.SHORT_RIGHT : SwipeDirection.LONG_RIGHT;
         } else if (direction >= 135.0 || direction <= -135.0)
         {
-            return SwipeDirection.UP;
+            return long_swipe ? SwipeDirection.SHORT_UP : SwipeDirection.LONG_UP;
         } else if ((direction < 45.0 && direction >= 0.0) || (direction < 0.0 && direction >= -45.0))
         {
-            return SwipeDirection.DOWN;
+            return long_swipe ? SwipeDirection.SHORT_DOWN : SwipeDirection.LONG_DOWN;
         } else
         {
-            return SwipeDirection.LEFT;
+            return long_swipe ? SwipeDirection.SHORT_LEFT : SwipeDirection.LONG_LEFT;
         }
-    }
-
-    private static float norm(float n1, float n2)
-    {
-        return (float)Math.sqrt((n1 * n1) + (n2 * n2));
     }
 
     @Override
@@ -107,6 +120,19 @@ public class Chorded extends InputMethodService {
         } else {
             ic.deleteSurroundingText(1, 0);
         }
+    }
+
+    private void performDeleteWord()
+    {
+        resetRoot();
+        buttonpress_chord = 0;
+        relabelKeys();
+        CharSequence prior_text;
+        // do...while ensures at least one deletion, in the case of starting with a space
+        do {
+            ic.deleteSurroundingText(1, 0);
+            prior_text = ic.getTextBeforeCursor(1, 0);
+        } while (prior_text.length() != 0 && !Character.isSpaceChar(prior_text.charAt(0)));
     }
 
     private void performShift()
@@ -174,20 +200,29 @@ public class Chorded extends InputMethodService {
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_POINTER_UP:
                     float swipeX = eventtype.getX() - downX, swipeY = eventtype.getY() - downY;
-                    float swipe_length = norm(swipeX, swipeY);
-                    if (swipe_length >= kv.getWidth() / 4.0f) {
-                        // Detected a viable swipe.
-                        switch (toSwipeDirection(swipeX, swipeY)) {
-                            case UP:
-                                performShift();
+                    SwipeDirection swiped = toSwipeDirection(swipeX, swipeY, kv.getWidth() / 5.0f, kv.getWidth() / 1.66f);
+                    if(swiped != SwipeDirection.NONE) {
+                        switch (swiped) {
+                            case SHORT_UP:
+                            case LONG_UP:
+                                if (!sym) {
+                                    performShift();
+                                } else {
+                                    toggleSym();
+                                }
                                 break;
-                            case DOWN:
+                            case SHORT_DOWN:
+                            case LONG_DOWN:
                                 toggleSym();
                                 break;
-                            case LEFT:
+                            case SHORT_LEFT:
                                 performBackspace();
                                 break;
-                            case RIGHT:
+                            case LONG_LEFT:
+                                performDeleteWord();
+                                break;
+                            case SHORT_RIGHT:
+                            case LONG_RIGHT:
                                 performSpace();
                                 break;
                         }
@@ -324,52 +359,48 @@ public class Chorded extends InputMethodService {
         // https://storage.googleapis.com/books/ngrams/books/datasetsv2.html
         // All of these are simply the total of that character, divided by the count of 'e'.
         ArrayList<HuffmanNode> sym_inp = new ArrayList<>();
-        sym_inp.add(new HuffmanNode(".", 0.5407939404659455));
-        sym_inp.add(new HuffmanNode(",", 0.16461392538226494));
-        sym_inp.add(new HuffmanNode("1", 0.045110034494593935));
-        sym_inp.add(new HuffmanNode("-", 0.03695380629806522));
-        sym_inp.add(new HuffmanNode("_", 0.03695380629806522));
-        sym_inp.add(new HuffmanNode("\"", 0.025805651796693023));
-        sym_inp.add(new HuffmanNode("0", 0.024383965675686684));
-        sym_inp.add(new HuffmanNode("2", 0.024372053697076918));
-        sym_inp.add(new HuffmanNode("9", 0.022183488907292485));
-        sym_inp.add(new HuffmanNode("'", 0.021393207451059593));
-        sym_inp.add(new HuffmanNode("3", 0.018042435881588208));
-        sym_inp.add(new HuffmanNode(")", 0.017370302996660276));
-        sym_inp.add(new HuffmanNode("(", 0.01719763603953939));
-        sym_inp.add(new HuffmanNode("5", 0.015773199620595514));
-        sym_inp.add(new HuffmanNode("4", 0.015417072867507797));
-        sym_inp.add(new HuffmanNode("8", 0.014895139227337536));
-        sym_inp.add(new HuffmanNode("6", 0.013784676288063728));
-        sym_inp.add(new HuffmanNode(";", 0.01092166872416053));
-        sym_inp.add(new HuffmanNode("7", 0.010618114153469436));
-        sym_inp.add(new HuffmanNode(":", 0.010041084966759792));
-        sym_inp.add(new HuffmanNode("?", 0.003963123413518657));
-        sym_inp.add(new HuffmanNode("/", 0.001984415281369128));
-        sym_inp.add(new HuffmanNode("!", 0.001533170494735705));
-        sym_inp.add(new HuffmanNode("]", 0.0012173039860143954));
-        sym_inp.add(new HuffmanNode("[", 0.0012062913038717994));
-        sym_inp.add(new HuffmanNode("*", 0.001171742078651894));
-        sym_inp.add(new HuffmanNode("&", 0.000851400999709061));
-        sym_inp.add(new HuffmanNode("$", 0.000829164152217612));
-        sym_inp.add(new HuffmanNode("%", 0.0007939120096654312));
-        sym_inp.add(new HuffmanNode("=", 0.0003914106529181468));
-        sym_inp.add(new HuffmanNode("^", 0.0003650821453991294));
-        sym_inp.add(new HuffmanNode("°", 0.0002669752645165843));
-        sym_inp.add(new HuffmanNode("+", 0.00026450019729451236));
-        sym_inp.add(new HuffmanNode("§", 0.0002207307212671594));
-        sym_inp.add(new HuffmanNode("£", 0.00018640812409159789));
-        sym_inp.add(new HuffmanNode(">", 0.00018604714639533013));
-        sym_inp.add(new HuffmanNode("\\", 0.00013057625188935318));
-        sym_inp.add(new HuffmanNode("»", 0.00012577640397443574));
-        sym_inp.add(new HuffmanNode("<", 0.00012313041643681097));
-        sym_inp.add(new HuffmanNode("«", 0.0001098284730658925));
-        sym_inp.add(new HuffmanNode("|", 0.00010639035604362342));
-        sym_inp.add(new HuffmanNode("#", 7.807508221459735e-05));
-        sym_inp.add(new HuffmanNode("~", 6.852052679622645e-05));
-        sym_inp.add(new HuffmanNode("©", 6.358297471035486e-05));
-        sym_inp.add(new HuffmanNode("{", 5.875344570821948e-05));
-        sym_inp.add(new HuffmanNode("}", 3.563352108206465e-05));
+        sym_inp.add(new HuffmanNode("{", 1600.0));
+        sym_inp.add(new HuffmanNode("}", 1600.0));
+        sym_inp.add(new HuffmanNode("[", 1719.0));
+        sym_inp.add(new HuffmanNode("]", 1797.0));
+        sym_inp.add(new HuffmanNode("’", 2008.0));
+        sym_inp.add(new HuffmanNode("#", 3360.0));
+        sym_inp.add(new HuffmanNode("&", 3929.0));
+        sym_inp.add(new HuffmanNode("$", 4472.0));
+        sym_inp.add(new HuffmanNode("|", 4641.0));
+        sym_inp.add(new HuffmanNode("+", 5671.0));
+        sym_inp.add(new HuffmanNode("\\", 5864.0));
+        sym_inp.add(new HuffmanNode("%", 7308.0));
+        sym_inp.add(new HuffmanNode("=", 19406.0));
+        sym_inp.add(new HuffmanNode("_", 21358.0));
+        sym_inp.add(new HuffmanNode("<", 25073.0));
+        sym_inp.add(new HuffmanNode("@", 25638.0));
+        sym_inp.add(new HuffmanNode("7", 26553.0));
+        sym_inp.add(new HuffmanNode("9", 26710.0));
+        sym_inp.add(new HuffmanNode("(", 27309.0));
+        sym_inp.add(new HuffmanNode("8", 30295.0));
+        sym_inp.add(new HuffmanNode("6", 31896.0));
+        sym_inp.add(new HuffmanNode(">", 33170.0));
+        sym_inp.add(new HuffmanNode("4", 33565.0));
+        sym_inp.add(new HuffmanNode(")", 33618.0));
+        sym_inp.add(new HuffmanNode("~", 35828.0));
+        sym_inp.add(new HuffmanNode("5", 36502.0));
+        sym_inp.add(new HuffmanNode(";", 41921.0));
+        sym_inp.add(new HuffmanNode("^", 46880.0));
+        sym_inp.add(new HuffmanNode("3", 52537.0));
+        sym_inp.add(new HuffmanNode("2", 52537.0));
+        sym_inp.add(new HuffmanNode("\"", 60509.0));
+        sym_inp.add(new HuffmanNode("1", 72710.0));
+        sym_inp.add(new HuffmanNode("0", 75707.0));
+        sym_inp.add(new HuffmanNode("-", 83988.0));
+        sym_inp.add(new HuffmanNode("*", 116810.0));
+        sym_inp.add(new HuffmanNode("!", 135396.0));
+        sym_inp.add(new HuffmanNode("?", 162819.0));
+        sym_inp.add(new HuffmanNode("/", 171341.0));
+        sym_inp.add(new HuffmanNode(":", 182279.0));
+        sym_inp.add(new HuffmanNode(",", 321388.0));
+        sym_inp.add(new HuffmanNode("'", 434148.0));
+        sym_inp.add(new HuffmanNode(".", 668936.0));
         sym_tree.CreateEncoding(sym_inp);
 
         ArrayList<HuffmanNode> inp = new ArrayList<>();
@@ -498,18 +529,20 @@ public class Chorded extends InputMethodService {
         super.onUpdateExtractedText(token, text);
     }
 
-    private void resetText()
-    {
+    private void resetText() {
         ExtractEditText editText = kv.findViewById(R.id.inputExtractEditText);
-        ExtractedTextRequest etr=new ExtractedTextRequest();
-        etr.token=0;
+        ExtractedTextRequest etr = new ExtractedTextRequest();
+        etr.token = 0;
         ExtractedText et = ic.getExtractedText(etr, 0);
         // retry
-        if(et == null)
-        {
-            ic =  getCurrentInputConnection();
+        int tries = 3;
+        while (et == null && tries > 0) {
+            ic = getCurrentInputConnection();
             et = ic.getExtractedText(etr, 0);
+            tries--;
         }
-        editText.setExtractedText(et);
+        if (et != null) {
+            editText.setExtractedText(et);
+        }
     }
 }
