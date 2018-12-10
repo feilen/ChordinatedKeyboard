@@ -64,6 +64,7 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_weight="1"
+            android:background="@drawable/chord_button"
             android:textSize="8sp"
             tools:ignore="SmallSp" />
 
@@ -72,6 +73,7 @@
             style="@style/Theme.WearDiag"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
+            android:background="@drawable/chord_button"
             android:layout_weight="1"
             android:textSize="12sp" />
 
@@ -80,6 +82,7 @@
             style="@style/Theme.WearDiag"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
+            android:background="@drawable/chord_button"
             android:layout_weight="1"
             android:textSize="8sp" />
 

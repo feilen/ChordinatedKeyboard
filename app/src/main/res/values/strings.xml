@@ -3,9 +3,9 @@
     <string name="subtype_en_US">English (US)</string>
     <string name="enter_symbol">⏎</string>
     <string name="title_activity_config">Chordinated</string>
-    <!--
-    This string is used for square devices and overridden by hello_world in
-    values-round/strings.xml for round devices.
-    -->
-    <string name="hello_world">Hello Square World!</string>
+    <string name="preference_key_sym_in_tree">pref_sym_in_tree</string>
+    <string name="preference_key_space_in_tree">pref_space_in_tree</string>
+    <string name="preference_key_version">pref_version</string>
+    <string name="preference_key_layout">pref_layout</string>
+
 </resources>

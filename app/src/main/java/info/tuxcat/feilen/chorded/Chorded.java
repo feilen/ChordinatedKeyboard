@@ -1,9 +1,12 @@
 package info.tuxcat.feilen.chorded;
 
 import android.content.Context;
+import android.graphics.Paint;
 import android.inputmethodservice.ExtractEditText;
 import android.inputmethodservice.InputMethodService;
 import android.support.wearable.input.WearableButtons;
+import android.text.InputType;
+import android.text.method.PasswordTransformationMethod;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -29,15 +32,13 @@ public class Chorded extends InputMethodService {
     private int buttonpress_chord;
     private int[] keylookup;
 
-    // Settings: eventually populate from user config
-    private final KeyboardType kType = KeyboardType.TWOXTWOFINGERNOSTRETCH;
-    private final boolean space_in_tree = false;
-    private final boolean sym_in_tree = false;
+    // Settings
+    private SettingsContainer settings = new SettingsContainer();
     private final float comfort_angle = -20.0f;
 
     // Current vars
-    private boolean caps = true;
-    private boolean sym = false;
+    private CapsType caps = CapsType.SHIFT;
+    private SymType sym = SymType.SYM_OFF;
 
     enum KeyboardType {
         TWOFINGER,
@@ -56,6 +57,18 @@ public class Chorded extends InputMethodService {
         LONG_DOWN,
         LONG_LEFT,
         LONG_RIGHT
+    }
+
+    enum CapsType {
+        LOWER,
+        SHIFT,
+        CAPS
+    }
+
+    enum SymType {
+        SYM_ON,
+        SYM_OFF,
+        SYM_IN_TREE
     }
 
     private static float norm(float n1, float n2)
@@ -119,6 +132,11 @@ public class Chorded extends InputMethodService {
             relabelKeys();
         } else {
             ic.deleteSurroundingText(1, 0);
+            if(ic.getTextBeforeCursor(1, 0).length() == 0)
+            {
+                caps = CapsType.SHIFT;
+                relabelKeys();
+            }
         }
     }
 
@@ -127,17 +145,40 @@ public class Chorded extends InputMethodService {
         resetRoot();
         buttonpress_chord = 0;
         relabelKeys();
-        CharSequence prior_text;
-        // do...while ensures at least one deletion, in the case of starting with a space
-        do {
-            ic.deleteSurroundingText(1, 0);
-            prior_text = ic.getTextBeforeCursor(1, 0);
-        } while (prior_text.length() != 0 && !Character.isSpaceChar(prior_text.charAt(0)));
+        int delete_idx = 1;
+        // delete words up to 20 chars in length
+        CharSequence prior_text = ic.getTextBeforeCursor(20, 0);
+        if(prior_text.length() == 0)
+        {
+            return;
+        }
+        while((prior_text.length() - delete_idx - 1) >= 0
+                && !Character.isSpaceChar(prior_text.charAt(prior_text.length() - delete_idx - 1)))
+        {
+            delete_idx++;
+        }
+        ic.deleteSurroundingText(delete_idx, 0);
+        if(ic.getTextBeforeCursor(1, 0).length() == 0)
+        {
+            caps = CapsType.SHIFT;
+            relabelKeys();
+        }
     }
 
     private void performShift()
     {
-        caps = !caps;
+        switch(caps)
+        {
+            case LOWER:
+                caps = CapsType.SHIFT;
+                break;
+            case SHIFT:
+                caps = CapsType.CAPS;
+                break;
+            case CAPS:
+                caps = CapsType.LOWER;
+                break;
+        }
         relabelKeys();
     }
 
@@ -148,7 +189,17 @@ public class Chorded extends InputMethodService {
 
     private void toggleSym()
     {
-        sym = !sym;
+        switch(sym)
+        {
+            case SYM_IN_TREE:
+                return;
+            case SYM_ON:
+                sym = SymType.SYM_OFF;
+                break;
+            case SYM_OFF:
+                sym = SymType.SYM_ON;
+                break;
+        }
         resetRoot();
         relabelKeys();
     }
@@ -159,7 +210,15 @@ public class Chorded extends InputMethodService {
     }
 
     private void resetRoot() {
-        curNode = sym && !sym_in_tree ? sym_tree.root : tree.root;
+        switch(sym)
+        {
+            case SYM_IN_TREE:
+            case SYM_OFF:
+                curNode = tree.root;
+                break;
+            case SYM_ON:
+                curNode = sym_tree.root;
+        }
     }
 
     private float downX, downY;
@@ -200,30 +259,50 @@ public class Chorded extends InputMethodService {
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_POINTER_UP:
                     float swipeX = eventtype.getX() - downX, swipeY = eventtype.getY() - downY;
-                    SwipeDirection swiped = toSwipeDirection(swipeX, swipeY, kv.getWidth() / 5.0f, kv.getWidth() / 1.66f);
+                    SwipeDirection swiped = toSwipeDirection(swipeX, swipeY, kv.getWidth() / 5.0f, kv.getWidth() / 1.33f);
                     if(swiped != SwipeDirection.NONE) {
                         switch (swiped) {
                             case SHORT_UP:
                             case LONG_UP:
-                                if (!sym) {
+                                if (sym != SymType.SYM_ON) {
                                     performShift();
                                 } else {
                                     toggleSym();
+                                }
+                                if(settings.vibrate_on_swipe)
+                                {
+                                    if(vibrator != null) vibrator.vibrate(35);
                                 }
                                 break;
                             case SHORT_DOWN:
                             case LONG_DOWN:
                                 toggleSym();
+                                if(settings.vibrate_on_swipe)
+                                {
+                                    if(vibrator != null) vibrator.vibrate(35);
+                                }
                                 break;
                             case SHORT_LEFT:
                                 performBackspace();
+                                if(settings.vibrate_on_swipe)
+                                {
+                                    if(vibrator != null) vibrator.vibrate(25);
+                                }
                                 break;
                             case LONG_LEFT:
                                 performDeleteWord();
+                                if(settings.vibrate_on_swipe)
+                                {
+                                    if(vibrator != null) vibrator.vibrate(35);
+                                }
                                 break;
                             case SHORT_RIGHT:
                             case LONG_RIGHT:
                                 performSpace();
+                                if(settings.vibrate_on_swipe)
+                                {
+                                    if(vibrator != null) vibrator.vibrate(25);
+                                }
                                 break;
                         }
                         buttonpress_current = 0;
@@ -258,16 +337,19 @@ public class Chorded extends InputMethodService {
                                 curNode = curNode.children.get(keylookup[buttonpress_chord]);
                                 if (curNode.children.size() == 0) {
                                     // Reached the end. Commit the current letter.
-                                    vibrator.vibrate(25);
+                                    if(vibrator != null) vibrator.vibrate(25);
                                     String inputchar = curNode.resultString;
-                                    if (caps && inputchar.length() == 1 && Character.isAlphabetic(inputchar.charAt(0))) {
+                                    if ((caps != CapsType.LOWER) && inputchar.length() == 1 && Character.isAlphabetic(inputchar.charAt(0))) {
                                         inputchar = inputchar.toUpperCase();
-                                        caps = !caps;
+                                        if(caps == CapsType.SHIFT)
+                                        {
+                                            caps = CapsType.LOWER;
+                                        }
                                     }
                                     ic.commitText(String.valueOf(inputchar), 1);
                                     resetRoot();
                                 } else {
-                                    vibrator.vibrate(15);
+                                    if(vibrator != null) vibrator.vibrate(15);
                                 }
                                 buttonpress_chord = 0;
                             } else {
@@ -291,8 +373,15 @@ public class Chorded extends InputMethodService {
     @Override
     public View onCreateInputView() {
         ic = getCurrentInputConnection();
+        settings.loadSettings(getApplicationContext());
+        if(settings.symbols_in_tree)
+        {
+            sym = SymType.SYM_IN_TREE;
+        } else {
+            sym = SymType.SYM_OFF;
+        }
         int hardware_buttons_count = WearableButtons.getButtonCount(getBaseContext());
-        switch(kType) {
+        switch(settings.keyboard_type) {
             case TWOFINGER:
                 kv = getLayoutInflater().inflate(R.layout.twochord, null);
                 tree = new HuffmanTree(3);
@@ -321,7 +410,7 @@ public class Chorded extends InputMethodService {
                 // To aid the visual, this would be the LEFT hand.
                 //  12
                 //  34
-                if(kType == KeyboardType.TWOXTWOFINGER)
+                if(settings.keyboard_type == KeyboardType.TWOXTWOFINGER)
                 {
                     sym_tree = new HuffmanTree(8);
                     tree = new HuffmanTree(8);
@@ -349,15 +438,14 @@ public class Chorded extends InputMethodService {
 
         kv.setRotation(comfort_angle);
 
-        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if(settings.enable_vibrate)
+            vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         buttonpress_chord = 0;
         buttonpress_current = 0;
 
         // Letter frequencies sampled from wikipedia:
         // https://en.m.wikipedia.org/wiki/Letter_frequency
-        // and later Googlebooks 1-grams newer than 1997:
-        // https://storage.googleapis.com/books/ngrams/books/datasetsv2.html
-        // All of these are simply the total of that character, divided by the count of 'e'.
+        // and later just my arbitrary Telegram chat logs.
         ArrayList<HuffmanNode> sym_inp = new ArrayList<>();
         sym_inp.add(new HuffmanNode("{", 1600.0));
         sym_inp.add(new HuffmanNode("}", 1600.0));
@@ -374,26 +462,26 @@ public class Chorded extends InputMethodService {
         sym_inp.add(new HuffmanNode("=", 19406.0));
         sym_inp.add(new HuffmanNode("_", 21358.0));
         sym_inp.add(new HuffmanNode("<", 25073.0));
+        sym_inp.add(new HuffmanNode(">", 25074.0));
         sym_inp.add(new HuffmanNode("@", 25638.0));
+        sym_inp.add(new HuffmanNode("^", 25639.0));
+        sym_inp.add(new HuffmanNode(";", 25640.0));
+        sym_inp.add(new HuffmanNode("*", 25641.0));
         sym_inp.add(new HuffmanNode("7", 26553.0));
         sym_inp.add(new HuffmanNode("9", 26710.0));
         sym_inp.add(new HuffmanNode("(", 27309.0));
         sym_inp.add(new HuffmanNode("8", 30295.0));
         sym_inp.add(new HuffmanNode("6", 31896.0));
-        sym_inp.add(new HuffmanNode(">", 33170.0));
         sym_inp.add(new HuffmanNode("4", 33565.0));
         sym_inp.add(new HuffmanNode(")", 33618.0));
         sym_inp.add(new HuffmanNode("~", 35828.0));
         sym_inp.add(new HuffmanNode("5", 36502.0));
-        sym_inp.add(new HuffmanNode(";", 41921.0));
-        sym_inp.add(new HuffmanNode("^", 46880.0));
         sym_inp.add(new HuffmanNode("3", 52537.0));
         sym_inp.add(new HuffmanNode("2", 52537.0));
         sym_inp.add(new HuffmanNode("\"", 60509.0));
         sym_inp.add(new HuffmanNode("1", 72710.0));
         sym_inp.add(new HuffmanNode("0", 75707.0));
         sym_inp.add(new HuffmanNode("-", 83988.0));
-        sym_inp.add(new HuffmanNode("*", 116810.0));
         sym_inp.add(new HuffmanNode("!", 135396.0));
         sym_inp.add(new HuffmanNode("?", 162819.0));
         sym_inp.add(new HuffmanNode("/", 171341.0));
@@ -431,14 +519,14 @@ public class Chorded extends InputMethodService {
         inp.add(new HuffmanNode("q", 0.12));
         inp.add(new HuffmanNode("z", 0.09));
 
-        if(sym_in_tree)
+        if(sym == SymType.SYM_IN_TREE)
         {
             sym_tree.root.displayString = ".!?";
             sym_tree.root.frequency = 14.726;
             inp.add(sym_tree.root);
         }
 
-        if(space_in_tree)
+        if(settings.space_in_tree)
         {
             // found by dividing out the average length of words in target language, and multiplying
             // by the sum of the above.. (English: 4.79)
@@ -450,17 +538,55 @@ public class Chorded extends InputMethodService {
 
     @Override
     public void onStartInput(EditorInfo attribute, boolean restarting) {
-        caps = true;
-        sym = false;
         ic =  getCurrentInputConnection();
         super.onStartInput(attribute, restarting);
     }
 
     @Override
     public void onStartInputView(EditorInfo info, boolean restarting) {
+        settings.loadSettings(getApplicationContext());
+        if(settings.symbols_in_tree)
+        {
+            sym = SymType.SYM_IN_TREE;
+        } else {
+            sym = SymType.SYM_OFF;
+        }
         resetRoot();
         relabelKeys();
         resetText();
+        // start out on sym for numbers
+        switch(sym)
+        {
+            case SYM_ON:
+            case SYM_OFF:
+                if((info.inputType & (InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_DATETIME | InputType.TYPE_CLASS_PHONE)) > 0)
+                {
+                    sym = SymType.SYM_ON;
+                }
+                else {
+                    sym = SymType.SYM_OFF;
+                }
+                break;
+            case SYM_IN_TREE:
+                break;
+        }
+
+        if((info.inputType & InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS) > 0)
+        {
+            caps = CapsType.CAPS;
+        } else
+        {
+            caps = CapsType.SHIFT;
+        }
+
+        ExtractEditText editText = kv.findViewById(R.id.inputExtractEditText);
+        if((info.inputType & InputType.TYPE_TEXT_VARIATION_PASSWORD) > 0)
+        {
+            editText.setTransformationMethod(PasswordTransformationMethod.getInstance());
+        } else {
+            editText.setTransformationMethod(null);
+        }
+
         super.onStartInputView(info, restarting);
     }
 
@@ -478,48 +604,48 @@ public class Chorded extends InputMethodService {
     private void relabelKeys() {
         Button chord_one = kv.findViewById(R.id.chord_one);
         Button chord_two = kv.findViewById(R.id.chord_two);
+        Button chord_three = kv.findViewById(R.id.chord_three);
+        Button chord_four = kv.findViewById(R.id.chord_four);
 
-        switch(kType) {
+        switch (settings.keyboard_type) {
             case TWOFINGER:
-                chord_one.setText(getKeyLabel(new int[]{1,3}, caps));
-                chord_one.invalidate();
-                chord_two.setText(getKeyLabel(new int[]{2,3}, caps));
-                chord_two.invalidate();
+                chord_one.setText(getKeyLabel(new int[]{1, 3}, caps != CapsType.LOWER));
+                chord_two.setText(getKeyLabel(new int[]{2, 3}, caps != CapsType.LOWER));
                 break;
             case THREEFINGER:
-                chord_one.setText(getKeyLabel(new int[]{1,3,5}, caps));
-                chord_one.invalidate();
-                chord_two.setText(getKeyLabel(new int[]{2,3,6}, caps));
-                chord_two.invalidate();
-                Button chord_three = kv.findViewById(R.id.chord_three);
-                chord_three.setText(getKeyLabel(new int[]{4,6,5}, caps));
-                chord_three.invalidate();
+                chord_one.setText(getKeyLabel(new int[]{1, 3, 5}, caps != CapsType.LOWER));
+                chord_two.setText(getKeyLabel(new int[]{2, 3, 6}, caps != CapsType.LOWER));
+                chord_three.setText(getKeyLabel(new int[]{4, 6, 5}, caps != CapsType.LOWER));
                 break;
             case TWOXTWOFINGER:
-                chord_one.setText(getKeyLabel(new int[]{1,3,9}, caps));
-                chord_one.invalidate();
-                chord_two.setText(getKeyLabel(new int[]{2,3,6}, caps));
-                chord_two.invalidate();
-                Button chord_threex = kv.findViewById(R.id.chord_three);
-                chord_threex.setText(getKeyLabel(new int[]{4,6,12}, caps));
-                chord_threex.invalidate();
-                Button chord_fourx = kv.findViewById(R.id.chord_four);
-                chord_fourx.setText(getKeyLabel(new int[]{8,9,12}, caps));
-                chord_fourx.invalidate();
+                chord_one.setText(getKeyLabel(new int[]{1, 3, 9}, caps != CapsType.LOWER));
+                chord_two.setText(getKeyLabel(new int[]{2, 3, 6}, caps != CapsType.LOWER));
+                chord_three.setText(getKeyLabel(new int[]{4, 6, 12}, caps != CapsType.LOWER));
+                chord_four.setText(getKeyLabel(new int[]{8, 9, 12}, caps != CapsType.LOWER));
                 break;
             case TWOXTWOFINGERNOSTRETCH:
-                chord_one.setText(getKeyLabel(new int[]{1,3}, caps));
-                chord_one.invalidate();
-                chord_two.setText(getKeyLabel(new int[]{2,3,6}, caps));
-                chord_two.invalidate();
-                Button chord_threexn = kv.findViewById(R.id.chord_three);
-                chord_threexn.setText(getKeyLabel(new int[]{4,6,12}, caps));
-                chord_threexn.invalidate();
-                Button chord_fourxn = kv.findViewById(R.id.chord_four);
-                chord_fourxn.setText(getKeyLabel(new int[]{8,12}, caps));
-                chord_fourxn.invalidate();
+                chord_one.setText(getKeyLabel(new int[]{1, 3}, caps != CapsType.LOWER));
+                chord_two.setText(getKeyLabel(new int[]{2, 3, 6}, caps != CapsType.LOWER));
+                chord_three.setText(getKeyLabel(new int[]{4, 6, 12}, caps != CapsType.LOWER));
+                chord_four.setText(getKeyLabel(new int[]{8, 12}, caps != CapsType.LOWER));
                 break;
         }
+        if (caps == CapsType.CAPS && sym != SymType.SYM_ON)
+        {
+            chord_one.setPaintFlags(chord_one.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            chord_two.setPaintFlags(chord_two.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            if(chord_three != null) chord_three.setPaintFlags(chord_three.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            if(chord_four != null) chord_four.setPaintFlags(chord_four.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+        } else {
+            chord_one.setPaintFlags(chord_one.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
+            chord_two.setPaintFlags(chord_two.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
+            if(chord_three != null) chord_three.setPaintFlags(chord_three.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
+            if(chord_four != null) chord_four.setPaintFlags(chord_four.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
+        }
+        if(chord_one != null) chord_one.invalidate();
+        if(chord_two != null) chord_two.invalidate();
+        if(chord_three != null) chord_three.invalidate();
+        if(chord_four != null) chord_four.invalidate();
     }
 
     @Override
