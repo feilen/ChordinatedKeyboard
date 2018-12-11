@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="false"
     android:background="@color/black"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:ignore="Overdraw">
 
     <Button
         android:id="@+id/button_return"
@@ -22,26 +22,20 @@
         android:layout_weight="0"
         android:orientation="horizontal">
 
-        <Space
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
-
         <android.inputmethodservice.ExtractEditText
             android:id="@+id/inputExtractEditText"
-            android:layout_width="140dp"
+            android:layout_width="0dp"
             android:layout_height="fill_parent"
+            android:layout_weight="1"
             android:background="@color/common_google_signin_btn_text_light_pressed"
-            android:text="TextView"
-            android:maxLines="1"
             android:inputType="text"
+            android:maxLines="1"
             android:textAlignment="textEnd"
             android:textSize="18sp" />
 
         <Space
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_width="20dp"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
     <LinearLayout
@@ -50,13 +44,6 @@
         android:layout_weight="1"
         android:orientation="horizontal"
         android:baselineAligned="false">
-
-        <Button
-            android:id="@+id/button"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="UGLYHACK1234567890"
-            tools:ignore="Suspicious0dp" />
 
         <Button
             android:id="@+id/chord_one"
@@ -84,7 +71,8 @@
             android:layout_height="fill_parent"
             android:background="@drawable/chord_button"
             android:layout_weight="1"
-            android:textSize="8sp" />
+            android:textSize="8sp"
+            tools:ignore="SmallSp" />
 
     </LinearLayout>
 

@@ -3,18 +3,24 @@ package info.tuxcat.feilen.chorded;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-public class SettingsContainer {
-    public final String CURRENT_VERSION = "1.0";
+@SuppressWarnings("SpellCheckingInspection")
+class SettingsContainer {
+    @SuppressWarnings("FieldCanBeLocal")
+    private final String CURRENT_VERSION = "1.0";
 
-    String version;
+    @Nullable
+    private String version;
     boolean symbols_in_tree;
     boolean space_in_tree;
-    boolean enable_vibrate = true;
-    boolean vibrate_on_swipe = true;
+    final boolean enable_vibrate = true;
+    final boolean vibrate_on_swipe = true;
+    final float comfort_angle = -20.0f;
     Chorded.KeyboardType keyboard_type;
 
-    public void saveSettings(Context context)
+    public void saveSettings(@NonNull Context context)
     {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -36,10 +42,10 @@ public class SettingsContainer {
                 editor.putString(context.getString(R.string.preference_key_layout), "TWOXTWOFINGERNOSTRETCH");
                 break;
         }
-        editor.commit();
+        editor.apply();
     }
 
-    public void loadSettings(Context context)
+    public void loadSettings(@NonNull Context context)
     {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         version = prefs.getString(context.getResources().getString(R.string.preference_key_version), "undefined");

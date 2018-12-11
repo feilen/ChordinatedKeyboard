@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/rootLayout"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="false"
     android:background="@color/black"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:ignore="Overdraw">
 
 
     <Button
@@ -22,40 +23,27 @@
         android:layout_weight="0"
         android:orientation="horizontal">
 
-        <Space
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
-
         <android.inputmethodservice.ExtractEditText
             android:id="@+id/inputExtractEditText"
-            android:layout_width="140dp"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="@color/common_google_signin_btn_text_light_pressed"
-            android:text="TextView"
-            android:maxLines="1"
             android:inputType="text"
+            android:maxLines="1"
             android:textAlignment="textEnd"
             android:textSize="18sp" />
 
         <Space
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_width="20dp"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/horizon_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:orientation="horizontal">
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0"
-            android:text="INVISIBLEHACK1234567890" />
 
         <Button
             android:id="@+id/chord_one"

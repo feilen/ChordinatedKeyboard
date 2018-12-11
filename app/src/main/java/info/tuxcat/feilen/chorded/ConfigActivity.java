@@ -1,6 +1,7 @@
 package info.tuxcat.feilen.chorded;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
 import android.widget.RadioButton;
@@ -8,7 +9,7 @@ import android.widget.RadioGroup;
 import android.widget.Switch;
 
 public class ConfigActivity extends WearableActivity {
-    SettingsContainer settings;
+    private SettingsContainer settings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,27 +22,27 @@ public class ConfigActivity extends WearableActivity {
         settings = new SettingsContainer();
         settings.loadSettings(getApplicationContext());
 
-        final Switch mSymSwitch = (Switch) findViewById(R.id.sym_switch);
+        final Switch mSymSwitch = findViewById(R.id.sym_switch);
         mSymSwitch.setChecked(settings.symbols_in_tree);
         mSymSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(@NonNull View view) {
                 settings.symbols_in_tree = ((Switch) view).isChecked();
                 settings.saveSettings(getApplicationContext());
             }
         });
 
-        Switch mSpaceSwitch = (Switch) findViewById(R.id.space_switch);
+        Switch mSpaceSwitch = findViewById(R.id.space_switch);
         mSpaceSwitch.setChecked(settings.space_in_tree);
         mSpaceSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(@NonNull View view) {
                 settings.space_in_tree = ((Switch) view).isChecked();
                 settings.saveSettings(getApplicationContext());
             }
         });
 
-        RadioGroup layoutgroup = (RadioGroup) findViewById(R.id.layout_radiogroup);
+        RadioGroup layoutgroup = findViewById(R.id.layout_radiogroup);
         for(int i = 0; i < layoutgroup.getChildCount(); i++)
         {
             RadioButton button = (RadioButton) layoutgroup.getChildAt(i);

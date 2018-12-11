@@ -1,15 +1,20 @@
 package info.tuxcat.feilen.chorded;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.inputmethodservice.ExtractEditText;
 import android.inputmethodservice.InputMethodService;
-import android.support.wearable.input.WearableButtons;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
@@ -21,24 +26,28 @@ import java.util.ArrayList;
 
 public class Chorded extends InputMethodService {
 
+    // Service connections
     private View kv;
     private InputConnection ic;
+    @Nullable
     private Vibrator vibrator;
 
+    // Tree and traversal
     private HuffmanTree tree;
     private HuffmanTree sym_tree;
     private HuffmanNode curNode;
-    private int buttonpress_current;
-    private int buttonpress_chord;
     private int[] keylookup;
 
     // Settings
-    private SettingsContainer settings = new SettingsContainer();
-    private final float comfort_angle = -20.0f;
+    private final SettingsContainer settings = new SettingsContainer();
 
     // Current vars
+    @NonNull
     private CapsType caps = CapsType.SHIFT;
+    @NonNull
     private SymType sym = SymType.SYM_OFF;
+    private int buttonpress_current;
+    private int buttonpress_chord;
 
     enum KeyboardType {
         TWOFINGER,
@@ -76,6 +85,7 @@ public class Chorded extends InputMethodService {
         return (float)Math.sqrt((n1 * n1) + (n2 * n2));
     }
 
+    @NonNull
     private SwipeDirection toSwipeDirection(float deltaX, float deltaY, float swipeThresholdSmall, float swipeThresholdBig)
     {
         float swipe_length = norm(deltaX, deltaY);
@@ -84,7 +94,7 @@ public class Chorded extends InputMethodService {
             return SwipeDirection.NONE;
         }
 
-        double direction = Math.atan2((double)deltaX, (double)deltaY) * (180/Math.PI) + comfort_angle;
+        double direction = Math.atan2((double)deltaX, (double)deltaY) * (180/Math.PI) + settings.comfort_angle;
         boolean long_swipe = swipe_length < swipeThresholdBig;
 
         if(direction > 180.0)
@@ -222,10 +232,11 @@ public class Chorded extends InputMethodService {
     }
 
     private float downX, downY;
+    @Nullable
     private final View.OnTouchListener onPress = new View.OnTouchListener()
     {
         @Override
-        public boolean onTouch(View button, MotionEvent eventtype)
+        public boolean onTouch(@NonNull View button, MotionEvent eventtype)
         {
             switch(eventtype.getAction())
             {
@@ -370,17 +381,13 @@ public class Chorded extends InputMethodService {
         }
     };
 
+    @SuppressLint("InflateParams")
     @Override
     public View onCreateInputView() {
         ic = getCurrentInputConnection();
         settings.loadSettings(getApplicationContext());
-        if(settings.symbols_in_tree)
-        {
-            sym = SymType.SYM_IN_TREE;
-        } else {
-            sym = SymType.SYM_OFF;
-        }
-        int hardware_buttons_count = WearableButtons.getButtonCount(getBaseContext());
+        sym = settings.symbols_in_tree ? SymType.SYM_IN_TREE : SymType.SYM_OFF;
+        //int hardware_buttons_count = WearableButtons.getButtonCount(getBaseContext());
         switch(settings.keyboard_type) {
             case TWOFINGER:
                 kv = getLayoutInflater().inflate(R.layout.twochord, null);
@@ -436,7 +443,14 @@ public class Chorded extends InputMethodService {
         final Button chord_two = kv.findViewById(R.id.chord_two);
         chord_two.setOnTouchListener(onPress);
 
-        kv.setRotation(comfort_angle);
+        kv.setRotation(settings.comfort_angle);
+        // kv has no root view and therefore has no idea what size it should be.
+        WindowManager wm = (WindowManager) getBaseContext().getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        kv.setMinimumHeight(size.y);
+        kv.setMinimumWidth(size.x);
 
         if(settings.enable_vibrate)
             vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -537,29 +551,26 @@ public class Chorded extends InputMethodService {
     }
 
     @Override
-    public void onStartInput(EditorInfo attribute, boolean restarting) {
-        ic =  getCurrentInputConnection();
-        super.onStartInput(attribute, restarting);
-    }
-
-    @Override
-    public void onStartInputView(EditorInfo info, boolean restarting) {
-        settings.loadSettings(getApplicationContext());
-        if(settings.symbols_in_tree)
+    public void onStartInput(@NonNull EditorInfo attribute, boolean restarting) {
+        if((attribute.inputType & InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS) > 0)
         {
-            sym = SymType.SYM_IN_TREE;
-        } else {
-            sym = SymType.SYM_OFF;
+            caps = CapsType.CAPS;
+        } else
+        {
+            caps = CapsType.SHIFT;
         }
-        resetRoot();
-        relabelKeys();
-        resetText();
+        settings.loadSettings(getApplicationContext());
+        sym = settings.symbols_in_tree ? SymType.SYM_IN_TREE : SymType.SYM_OFF;
+        ic = getCurrentInputConnection();
         // start out on sym for numbers
+        int input_class = attribute.inputType & InputType.TYPE_MASK_CLASS;
         switch(sym)
         {
             case SYM_ON:
             case SYM_OFF:
-                if((info.inputType & (InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_DATETIME | InputType.TYPE_CLASS_PHONE)) > 0)
+                if(input_class == InputType.TYPE_CLASS_NUMBER ||
+                        input_class == InputType.TYPE_CLASS_DATETIME ||
+                        input_class == InputType.TYPE_CLASS_PHONE)
                 {
                     sym = SymType.SYM_ON;
                 }
@@ -571,13 +582,14 @@ public class Chorded extends InputMethodService {
                 break;
         }
 
-        if((info.inputType & InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS) > 0)
-        {
-            caps = CapsType.CAPS;
-        } else
-        {
-            caps = CapsType.SHIFT;
-        }
+        super.onStartInput(attribute, restarting);
+    }
+
+    @Override
+    public void onStartInputView(@NonNull EditorInfo info, boolean restarting) {
+        resetRoot();
+        relabelKeys();
+        resetText();
 
         ExtractEditText editText = kv.findViewById(R.id.inputExtractEditText);
         if((info.inputType & InputType.TYPE_TEXT_VARIATION_PASSWORD) > 0)
@@ -590,6 +602,7 @@ public class Chorded extends InputMethodService {
         super.onStartInputView(info, restarting);
     }
 
+    @NonNull
     private String getKeyLabel(int[] chords, boolean is_caps)
     {
         StringBuilder label = new StringBuilder();
@@ -642,7 +655,9 @@ public class Chorded extends InputMethodService {
             if(chord_three != null) chord_three.setPaintFlags(chord_three.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
             if(chord_four != null) chord_four.setPaintFlags(chord_four.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
         }
+        //noinspection ConstantConditions
         if(chord_one != null) chord_one.invalidate();
+        //noinspection ConstantConditions
         if(chord_two != null) chord_two.invalidate();
         if(chord_three != null) chord_three.invalidate();
         if(chord_four != null) chord_four.invalidate();
