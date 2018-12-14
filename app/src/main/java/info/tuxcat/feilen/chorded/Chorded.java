@@ -10,10 +10,13 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
@@ -53,6 +56,7 @@ public class Chorded extends InputMethodService {
         TWOFINGER,
         THREEFINGER,
         TWOXTWOFINGER,
+        TWOXTWOFINGERHALFSTRETCH,
         TWOXTWOFINGERNOSTRETCH
     }
 
@@ -142,7 +146,7 @@ public class Chorded extends InputMethodService {
             relabelKeys();
         } else {
             ic.deleteSurroundingText(1, 0);
-            if(ic.getTextBeforeCursor(1, 0).length() == 0)
+            if(settings.auto_shift && ic.getTextBeforeCursor(1, 0).length() == 0)
             {
                 caps = CapsType.SHIFT;
                 relabelKeys();
@@ -168,7 +172,7 @@ public class Chorded extends InputMethodService {
             delete_idx++;
         }
         ic.deleteSurroundingText(delete_idx, 0);
-        if(ic.getTextBeforeCursor(1, 0).length() == 0)
+        if(settings.auto_shift && ic.getTextBeforeCursor(1, 0).length() == 0)
         {
             caps = CapsType.SHIFT;
             relabelKeys();
@@ -386,7 +390,6 @@ public class Chorded extends InputMethodService {
     public View onCreateInputView() {
         ic = getCurrentInputConnection();
         settings.loadSettings(getApplicationContext());
-        sym = settings.symbols_in_tree ? SymType.SYM_IN_TREE : SymType.SYM_OFF;
         //int hardware_buttons_count = WearableButtons.getButtonCount(getBaseContext());
         switch(settings.keyboard_type) {
             case TWOFINGER:
@@ -407,33 +410,32 @@ public class Chorded extends InputMethodService {
                 //  001 010 011 100 101 110
 
                 keylookup = new int[]{ -1,  1,  0,  3,  2,  5,  4};
-                final Button chord_three = kv.findViewById(R.id.chord_three);
-                chord_three.setOnTouchListener(onPress);
                 break;
             case TWOXTWOFINGER:
-            case TWOXTWOFINGERNOSTRETCH:
-                kv = getLayoutInflater().inflate(R.layout.twoxtwochord, null);
                 // Key chords should be in descending order of relative effort.
                 // To aid the visual, this would be the LEFT hand.
                 //  12
                 //  34
-                if(settings.keyboard_type == KeyboardType.TWOXTWOFINGER)
-                {
-                    sym_tree = new HuffmanTree(8);
-                    tree = new HuffmanTree(8);
-                    //                      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-                    //                        10 01 11 00 10 01 11 00 10 01 11 00 10 01 11
-                    //                        00 00 00 10 10 10 10 01 01 01 01 11 11 11 11
-                    keylookup = new int[]{ -1, 1, 0, 4, 3,-1, 6,-1, 2, 7,-1,-1, 5,-1,-1,-1};
-                } else {
-                    sym_tree = new HuffmanTree(7);
-                    tree = new HuffmanTree(7);
-                    keylookup = new int[]{ -1, 1, 0, 4, 3,-1, 6,-1, 2,-1,-1,-1, 5,-1,-1,-1};
-                }
-                final Button chord_threex = kv.findViewById(R.id.chord_three);
-                chord_threex.setOnTouchListener(onPress);
-                final Button chord_fourx = kv.findViewById(R.id.chord_four);
-                chord_fourx.setOnTouchListener(onPress);
+                kv = getLayoutInflater().inflate(R.layout.twoxtwochord, null);
+                sym_tree = new HuffmanTree(8);
+                tree = new HuffmanTree(8);
+                //                      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+                //                        10 01 11 00 10 01 11 00 10 01 11 00 10 01 11
+                //                        00 00 00 10 10 10 10 01 01 01 01 11 11 11 11
+                keylookup = new int[]{ -1, 1, 0, 4, 3,-1, 6,-1, 2, 7,-1,-1, 5,-1,-1,-1};
+            case TWOXTWOFINGERHALFSTRETCH:
+                // Same as above but ignore the bottom left, top right chord
+                kv = getLayoutInflater().inflate(R.layout.twoxtwochord, null);
+                sym_tree = new HuffmanTree(7);
+                tree = new HuffmanTree(7);
+                keylookup = new int[]{ -1, 1, 0, 4, 3,-1, 6,-1, 2,-1,-1,-1, 5,-1,-1,-1};
+                break;
+            case TWOXTWOFINGERNOSTRETCH:
+                // Same as above but ignore any chord requiring diagonals
+                kv = getLayoutInflater().inflate(R.layout.twoxtwochord, null);
+                sym_tree = new HuffmanTree(6);
+                tree = new HuffmanTree(6);
+                keylookup = new int[]{ -1, 1, 0, 4, 3,-1,-1,-1, 2,-1,-1,-1, 5,-1,-1,-1};
                 break;
         }
         final Button button_return = kv.findViewById(R.id.button_return);
@@ -442,15 +444,32 @@ public class Chorded extends InputMethodService {
         chord_one.setOnTouchListener(onPress);
         final Button chord_two = kv.findViewById(R.id.chord_two);
         chord_two.setOnTouchListener(onPress);
+        final Button chord_three = kv.findViewById(R.id.chord_three);
+        if(chord_three != null) chord_three.setOnTouchListener(onPress);
+        final Button chord_four = kv.findViewById(R.id.chord_four);
+        if(chord_four != null) chord_four.setOnTouchListener(onPress);
 
         kv.setRotation(settings.comfort_angle);
+
         // kv has no root view and therefore has no idea what size it should be.
         WindowManager wm = (WindowManager) getBaseContext().getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        kv.setMinimumHeight(size.y);
-        kv.setMinimumWidth(size.x);
+        Point total_size = new Point();
+        display.getSize(total_size);
+        kv.setMinimumHeight(total_size.y);
+        kv.setMinimumWidth(total_size.x);
+
+        // set space width to an ideal value
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        display.getMetrics(displaymetrics);
+        int return_button_height = (int) TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 30, displaymetrics );
+        double h = total_size.x/2.0;
+        double a = h - return_button_height;
+        double o = Math.sqrt((h*h) - (a*a));
+        View space_inputlead = kv.findViewById(R.id.space_inputlead);
+        ViewGroup.LayoutParams lp = space_inputlead.getLayoutParams();
+        lp.width = (int)(h - o);
+        space_inputlead.setLayoutParams(lp);
 
         if(settings.enable_vibrate)
             vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -460,7 +479,24 @@ public class Chorded extends InputMethodService {
         // Letter frequencies sampled from wikipedia:
         // https://en.m.wikipedia.org/wiki/Letter_frequency
         // and later just my arbitrary Telegram chat logs.
+        // Precompute numbers into one subtree
+        HuffmanTree num_tree = new HuffmanTree(sym_tree.getFactor());
+        ArrayList<HuffmanNode> num_inp = new ArrayList<>();
+        num_inp.add(new HuffmanNode("8", 30295.0));
+        num_inp.add(new HuffmanNode("6", 31896.0));
+        num_inp.add(new HuffmanNode("4", 33565.0));
+        num_inp.add(new HuffmanNode("5", 36502.0));
+        num_inp.add(new HuffmanNode("3", 52537.0));
+        num_inp.add(new HuffmanNode("2", 52537.0));
+        num_inp.add(new HuffmanNode("1", 72710.0));
+        num_inp.add(new HuffmanNode("0", 75707.0));
+        num_inp.add(new HuffmanNode("7", 26553.0));
+        num_inp.add(new HuffmanNode("9", 26710.0));
+        num_tree.CreateEncoding(num_inp);
+        num_tree.root.displayString = "0123456789";
+
         ArrayList<HuffmanNode> sym_inp = new ArrayList<>();
+        sym_inp.add(num_tree.root);
         sym_inp.add(new HuffmanNode("{", 1600.0));
         sym_inp.add(new HuffmanNode("}", 1600.0));
         sym_inp.add(new HuffmanNode("[", 1719.0));
@@ -481,20 +517,10 @@ public class Chorded extends InputMethodService {
         sym_inp.add(new HuffmanNode("^", 25639.0));
         sym_inp.add(new HuffmanNode(";", 25640.0));
         sym_inp.add(new HuffmanNode("*", 25641.0));
-        sym_inp.add(new HuffmanNode("7", 26553.0));
-        sym_inp.add(new HuffmanNode("9", 26710.0));
         sym_inp.add(new HuffmanNode("(", 27309.0));
-        sym_inp.add(new HuffmanNode("8", 30295.0));
-        sym_inp.add(new HuffmanNode("6", 31896.0));
-        sym_inp.add(new HuffmanNode("4", 33565.0));
         sym_inp.add(new HuffmanNode(")", 33618.0));
         sym_inp.add(new HuffmanNode("~", 35828.0));
-        sym_inp.add(new HuffmanNode("5", 36502.0));
-        sym_inp.add(new HuffmanNode("3", 52537.0));
-        sym_inp.add(new HuffmanNode("2", 52537.0));
         sym_inp.add(new HuffmanNode("\"", 60509.0));
-        sym_inp.add(new HuffmanNode("1", 72710.0));
-        sym_inp.add(new HuffmanNode("0", 75707.0));
         sym_inp.add(new HuffmanNode("-", 83988.0));
         sym_inp.add(new HuffmanNode("!", 135396.0));
         sym_inp.add(new HuffmanNode("?", 162819.0));
@@ -533,7 +559,7 @@ public class Chorded extends InputMethodService {
         inp.add(new HuffmanNode("q", 0.12));
         inp.add(new HuffmanNode("z", 0.09));
 
-        if(sym == SymType.SYM_IN_TREE)
+        if(settings.symbols_in_tree)
         {
             sym_tree.root.displayString = ".!?";
             sym_tree.root.frequency = 14.726;
@@ -552,34 +578,36 @@ public class Chorded extends InputMethodService {
 
     @Override
     public void onStartInput(@NonNull EditorInfo attribute, boolean restarting) {
+        settings.loadSettings(getApplicationContext());
         if((attribute.inputType & InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS) > 0)
         {
             caps = CapsType.CAPS;
-        } else
+        } else if (settings.auto_shift)
         {
             caps = CapsType.SHIFT;
+        } else
+        {
+            caps = CapsType.LOWER;
         }
-        settings.loadSettings(getApplicationContext());
-        sym = settings.symbols_in_tree ? SymType.SYM_IN_TREE : SymType.SYM_OFF;
         ic = getCurrentInputConnection();
         // start out on sym for numbers
         int input_class = attribute.inputType & InputType.TYPE_MASK_CLASS;
-        switch(sym)
-        {
-            case SYM_ON:
-            case SYM_OFF:
-                if(input_class == InputType.TYPE_CLASS_NUMBER ||
-                        input_class == InputType.TYPE_CLASS_DATETIME ||
-                        input_class == InputType.TYPE_CLASS_PHONE)
-                {
+        if(!settings.symbols_in_tree) {
+            switch(input_class)
+            {
+                case InputType.TYPE_CLASS_NUMBER:
+                case InputType.TYPE_CLASS_DATETIME:
+                case InputType.TYPE_CLASS_PHONE:
                     sym = SymType.SYM_ON;
-                }
-                else {
+                    break;
+                case InputType.TYPE_CLASS_TEXT:
+                default:
                     sym = SymType.SYM_OFF;
-                }
-                break;
-            case SYM_IN_TREE:
-                break;
+                    break;
+            }
+        }
+        else {
+            sym = SymType.SYM_IN_TREE;
         }
 
         super.onStartInput(attribute, restarting);
@@ -636,12 +664,19 @@ public class Chorded extends InputMethodService {
                 chord_three.setText(getKeyLabel(new int[]{4, 6, 12}, caps != CapsType.LOWER));
                 chord_four.setText(getKeyLabel(new int[]{8, 9, 12}, caps != CapsType.LOWER));
                 break;
-            case TWOXTWOFINGERNOSTRETCH:
+            case TWOXTWOFINGERHALFSTRETCH:
                 chord_one.setText(getKeyLabel(new int[]{1, 3}, caps != CapsType.LOWER));
                 chord_two.setText(getKeyLabel(new int[]{2, 3, 6}, caps != CapsType.LOWER));
                 chord_three.setText(getKeyLabel(new int[]{4, 6, 12}, caps != CapsType.LOWER));
                 chord_four.setText(getKeyLabel(new int[]{8, 12}, caps != CapsType.LOWER));
                 break;
+            case TWOXTWOFINGERNOSTRETCH:
+                chord_one.setText(getKeyLabel(new int[]{1, 3}, caps != CapsType.LOWER));
+                chord_two.setText(getKeyLabel(new int[]{2, 3}, caps != CapsType.LOWER));
+                chord_three.setText(getKeyLabel(new int[]{4, 12}, caps != CapsType.LOWER));
+                chord_four.setText(getKeyLabel(new int[]{8, 12}, caps != CapsType.LOWER));
+                break;
+
         }
         if (caps == CapsType.CAPS && sym != SymType.SYM_ON)
         {

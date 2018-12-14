@@ -38,26 +38,40 @@
                 android:layout_height="wrap_content"
                 android:text="Space in tree" />
 
+            <Switch
+                android:id="@+id/auto_shift_switch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Auto-shift" />
+
             <TextView
+                android:id="@+id/textView2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="10"
+                android:hint="The current input text"
                 android:text="Layout"
                 android:textAlignment="center"
-                android:hint="The current input text"
                 android:textSize="12sp" />
 
             <RadioGroup
                 android:id="@+id/layout_radiogroup"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent">
+
+                <RadioButton
+                    android:id="@+id/radio_2x2halfstretch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="2x2 Fingers, No awkward ring/index stretch (Reccomended)" />
 
                 <RadioButton
                     android:id="@+id/radio_2x2nostretch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="2x2 Fingers Nostretch" />
+                    android:text="2x2 Fingers, No Diagonals" />
 
                 <RadioButton
                     android:id="@+id/radio_2x2"
@@ -79,6 +93,56 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="3 Fingers" />
+            </RadioGroup>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="The current input text"
+                android:text="Comfort Angle"
+                android:textAlignment="center"
+                android:textSize="12sp" />
+
+            <RadioGroup
+                android:id="@+id/comfort_radiogroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <RadioButton
+                    android:id="@+id/radio_comfort0"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="0 degrees" />
+
+                <RadioButton
+                    android:id="@+id/radio_comfort5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="5 degrees" />
+
+                <RadioButton
+                    android:id="@+id/radio_comfort10"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="10 degrees" />
+
+                <RadioButton
+                    android:id="@+id/radio_comfort15"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="15 degrees" />
+
+                <RadioButton
+                    android:id="@+id/radio_comfort20"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="20 degrees" />
             </RadioGroup>
 
             <Space

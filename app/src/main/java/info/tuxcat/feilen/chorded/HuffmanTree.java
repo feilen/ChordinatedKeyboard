@@ -18,6 +18,12 @@ class HuffmanTree {
     {
         this.factor = factor;
     }
+
+    public int getFactor()
+    {
+        return factor;
+    }
+
     
     public void CreateEncoding(@NonNull ArrayList<HuffmanNode> nodes)
     {

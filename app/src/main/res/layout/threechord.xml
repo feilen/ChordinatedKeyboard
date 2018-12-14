@@ -34,7 +34,8 @@
             android:textSize="18sp" />
 
         <Space
-            android:layout_width="20dp"
+            android:id="@+id/space_inputlead"
+            android:layout_width="1dp"
             android:layout_height="wrap_content" />
     </LinearLayout>
 
@@ -51,7 +52,7 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_weight="1"
-            android:background="@drawable/chord_button"
+            android:background="@drawable/chord_button_top_right"
             android:textSize="8sp"
             tools:ignore="SmallSp" />
 
@@ -60,8 +61,8 @@
             style="@style/Theme.WearDiag"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:background="@drawable/chord_button"
             android:layout_weight="1"
+            android:background="@drawable/chord_button_top_left_right"
             android:textSize="12sp" />
 
         <Button
@@ -69,8 +70,8 @@
             style="@style/Theme.WearDiag"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:background="@drawable/chord_button"
             android:layout_weight="1"
+            android:background="@drawable/chord_button_top_left"
             android:textSize="8sp"
             tools:ignore="SmallSp" />
 

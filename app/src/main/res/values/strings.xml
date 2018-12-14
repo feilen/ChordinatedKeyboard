@@ -7,5 +7,8 @@
     <string name="preference_key_space_in_tree">pref_space_in_tree</string>
     <string name="preference_key_version">pref_version</string>
     <string name="preference_key_layout">pref_layout</string>
+    <string name="preference_key_comfort_angle">pref_comfort_angle</string>
+    <string name="preference_key_auto_shift">pref_auto_shift</string>
+
 
 </resources>

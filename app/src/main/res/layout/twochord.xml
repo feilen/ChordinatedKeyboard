@@ -35,7 +35,8 @@
             android:textSize="18sp" />
 
         <Space
-            android:layout_width="20dp"
+            android:id="@+id/space_inputlead"
+            android:layout_width="1dp"
             android:layout_height="wrap_content" />
     </LinearLayout>
 
@@ -50,15 +51,15 @@
             style="@style/Theme.WearDiag"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/chord_button"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:background="@drawable/chord_button_top_right" />
 
         <Button
             android:id="@+id/chord_two"
             style="@style/Theme.WearDiag"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/chord_button"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:background="@drawable/chord_button_top_left" />
     </LinearLayout>
 </LinearLayout>

@@ -17,6 +17,12 @@ class HuffmanNode {
             frequency += inputNode.frequency;
             displayString += inputNode.displayString;
         }
+        // Hack, because the default encoding produces a label containing the word 'cum',
+        // and like twenty people have pointed that out to me.
+        if(displayString.length() >= 2 && displayString.substring(0, 2).equals("cu"))
+        {
+            displayString = displayString.replace("cu", "uc");
+        }
         children = input;
     }
     HuffmanNode(){}
