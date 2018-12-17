@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "info.tuxcat.feilen.chorded"
+        applicationId "info.tuxcat.chordinated"
         minSdkVersion 23
         targetSdkVersion 27
         versionCode 1

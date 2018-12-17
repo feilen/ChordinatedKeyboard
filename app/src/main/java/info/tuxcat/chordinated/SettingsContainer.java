@@ -1,12 +1,11 @@
-package info.tuxcat.feilen.chorded;
+package info.tuxcat.chordinated;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,8 +15,8 @@ class SettingsContainer {
     @SuppressWarnings("FieldCanBeLocal")
     private final String CURRENT_VERSION = "1.0";
 
-    @Nullable
-    private String version;
+    @NonNull
+    private String version = "undefined";
     boolean symbols_in_tree;
     boolean space_in_tree;
     boolean auto_shift;
@@ -25,6 +24,18 @@ class SettingsContainer {
     float comfort_angle;
     EnumSet<Chorded.VibrationType> vibration_type = EnumSet.noneOf(Chorded.VibrationType.class);
     Chorded.KeyboardType keyboard_type;
+
+    public boolean equals(@NonNull SettingsContainer o)
+    {
+        return version.equals(o.version)
+                && symbols_in_tree == o.symbols_in_tree
+                && space_in_tree == o.space_in_tree
+                && auto_shift == o.auto_shift
+                && left_handed_mode == o.left_handed_mode
+                && comfort_angle == o.comfort_angle
+                && vibration_type.equals(o.vibration_type)
+                && keyboard_type.equals(o.keyboard_type);
+    }
 
     public void saveSettings(@NonNull Context context)
     {
@@ -38,7 +49,7 @@ class SettingsContainer {
         editor.putFloat(context.getString(R.string.preference_key_comfort_angle), comfort_angle);
 
         // Store vibration
-        Set<String> vtypes_str = new HashSet<String>();
+        Set<String> vtypes_str = new HashSet<>();
         for(Chorded.VibrationType vtype: vibration_type)
         {
             vtypes_str.add(vtype.name());
@@ -90,7 +101,7 @@ class SettingsContainer {
                 left_handed_mode = prefs.getBoolean(context.getResources().getString(R.string.preference_key_left_handed_mode), false);
                 auto_shift = prefs.getBoolean(context.getString(R.string.preference_key_auto_shift), true);
                 comfort_angle = prefs.getFloat(context.getString(R.string.preference_key_comfort_angle), -20.0f);
-                Set<String> vibration_set = prefs.getStringSet(context.getString(R.string.preference_key_vibration_type), new HashSet<>(Arrays.asList("undefined")));
+                Set<String> vibration_set = prefs.getStringSet(context.getString(R.string.preference_key_vibration_type), new HashSet<>(Collections.singletonList("undefined")));
                 if(vibration_set.contains("undefined")){
                     vibration_type = EnumSet.allOf(Chorded.VibrationType.class);
                 } else {

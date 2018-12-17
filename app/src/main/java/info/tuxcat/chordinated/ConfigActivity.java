@@ -1,10 +1,9 @@
-package info.tuxcat.feilen.chorded;
+package info.tuxcat.chordinated;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
-import android.view.WindowInsets;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;

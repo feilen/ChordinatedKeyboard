@@ -1,4 +1,4 @@
-package info.tuxcat.feilen.chorded;
+package info.tuxcat.chordinated;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -42,7 +42,8 @@ public class Chorded extends InputMethodService {
     private int[] keylookup;
 
     // Settings
-    private final SettingsContainer settings = new SettingsContainer();
+    @NonNull
+    private SettingsContainer settings = new SettingsContainer();
 
     // Current vars
     @NonNull
@@ -78,7 +79,6 @@ public class Chorded extends InputMethodService {
     }
 
     enum SwipeDistance {
-        NONE,
         SHORT,
         MEDIUM,
         LONG
@@ -182,7 +182,7 @@ public class Chorded extends InputMethodService {
     private void performVibrate(VibrationType type, long millis)
     {
         if(settings.vibration_type.contains(type)) {
-            vibrator.vibrate(millis);
+            if(vibrator != null) vibrator.vibrate(millis);
         }
     }
 
@@ -429,20 +429,15 @@ public class Chorded extends InputMethodService {
     };
 
     @SuppressLint("InflateParams")
-    @Override
-    public View onCreateInputView() {
-        ic = getCurrentInputConnection();
-        settings.loadSettings(getApplicationContext());
-        //int hardware_buttons_count = WearableButtons.getButtonCount(getBaseContext());
+    private void recreateRootView()
+    {
         switch(settings.keyboard_type) {
             case TWOFINGER:
                 root_view = getLayoutInflater().inflate(R.layout.twochord, null);
                 tree = new HuffmanTree(3);
                 sym_tree = new HuffmanTree(3);
                 //                     01  10  11
-                keylookup = settings.left_handed_mode ?
-                        new int[]{-1, 1, 0, 2}:
-                        new int[]{-1, 0, 1, 2};
+                keylookup = new int[]{-1, 0, 1, 2};
                 break;
             case THREEFINGER:
                 root_view = getLayoutInflater().inflate(R.layout.threechord, null);
@@ -644,12 +639,26 @@ public class Chorded extends InputMethodService {
             inp.add(new HuffmanNode(" ", 14.727, "␣"));
         }
         tree.CreateEncoding(inp);
+    }
+
+    @Override
+    public View onCreateInputView() {
+        ic = getCurrentInputConnection();
+        settings.loadSettings(getApplicationContext());
+        recreateRootView();
         return root_view;
     }
 
     @Override
     public void onStartInput(@NonNull EditorInfo attribute, boolean restarting) {
-        settings.loadSettings(getApplicationContext());
+        SettingsContainer new_settings = new SettingsContainer();
+        new_settings.loadSettings(getApplicationContext());
+        if(!new_settings.equals(settings))
+        {
+            settings = new_settings;
+            recreateRootView();
+            setInputView(root_view);
+        }
         if((attribute.inputType & InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS) > 0)
         {
             caps = CapsType.CAPS;

@@ -11,6 +11,17 @@
     <string name="preference_key_auto_shift">pref_auto_shift</string>
     <string name="preference_key_vibration_type">pref_vibration_type</string>
     <string name="preference_key_left_handed_mode">pref_left_handed_mode</string>
+    <string name="basic_instructions">Instructions
+\n- Press a button to apply the first label
+\n- Press matching labels simultaneously to apply other labels
+\n- If a label is a single letter, pressing will submit type letter
+\n- If a label is multiple letters, pressing will open that subtree of letters
+\n- Swipe up for shift (twice for caps)
+\n- Swipe left for backspace (bigger swipe for delete word)
+\n- Swipe right for space
+\n- Swipe down for symbols
+    </string>
+
 
 
 </resources>

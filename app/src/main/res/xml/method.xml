@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <input-method xmlns:android="http://schemas.android.com/apk/res/android">
-    android:settingsActivity="info.tuxcat.feilen.chorded.ConfigActivity"
+    android:settingsActivity="info.tuxcat.chordedinated.ConfigActivity"
     <subtype
         android:label="@string/subtype_en_US"
         android:imeSubtypeLocale="en_US"

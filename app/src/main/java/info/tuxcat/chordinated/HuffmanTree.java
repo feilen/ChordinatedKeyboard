@@ -1,4 +1,4 @@
-package info.tuxcat.feilen.chorded;
+package info.tuxcat.chordinated;
 
 import android.support.annotation.NonNull;
 
