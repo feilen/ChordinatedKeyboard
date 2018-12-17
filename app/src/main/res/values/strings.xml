@@ -9,6 +9,8 @@
     <string name="preference_key_layout">pref_layout</string>
     <string name="preference_key_comfort_angle">pref_comfort_angle</string>
     <string name="preference_key_auto_shift">pref_auto_shift</string>
+    <string name="preference_key_vibration_type">pref_vibration_type</string>
+    <string name="preference_key_left_handed_mode">pref_left_handed_mode</string>
 
 
 </resources>

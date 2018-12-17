@@ -44,12 +44,16 @@
                 android:layout_height="wrap_content"
                 android:text="Auto-shift" />
 
+            <Switch
+                android:id="@+id/left_handed_switch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Left-handed mode" />
+
             <TextView
-                android:id="@+id/textView2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="10"
-                android:hint="The current input text"
                 android:text="Layout"
                 android:textAlignment="center"
                 android:textSize="12sp" />
@@ -99,7 +103,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="10"
-                android:hint="The current input text"
                 android:text="Comfort Angle"
                 android:textAlignment="center"
                 android:textSize="12sp" />
@@ -144,6 +147,32 @@
                     android:layout_weight="1"
                     android:text="20 degrees" />
             </RadioGroup>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:text="Vibration Settings"
+                android:textAlignment="center"
+                android:textSize="12sp" />
+
+            <Switch
+                android:id="@+id/vibrate_chord_press_switch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="On Subtree Pressed" />
+
+            <Switch
+                android:id="@+id/vibrate_letter_submitted_switch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="On Letter Pressed" />
+
+            <Switch
+                android:id="@+id/vibrate_on_swipe_switch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="On Swipe" />
 
             <Space
                 android:layout_width="match_parent"

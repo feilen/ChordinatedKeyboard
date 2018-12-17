@@ -30,7 +30,7 @@ import java.util.ArrayList;
 public class Chorded extends InputMethodService {
 
     // Service connections
-    private View kv;
+    private View root_view;
     private InputConnection ic;
     @Nullable
     private Vibrator vibrator;
@@ -60,16 +60,28 @@ public class Chorded extends InputMethodService {
         TWOXTWOFINGERNOSTRETCH
     }
 
+    // TODO: This really needs to be a bitmasked interface
     enum SwipeDirection {
         NONE,
         SHORT_UP,
         SHORT_DOWN,
         SHORT_LEFT,
         SHORT_RIGHT,
+        MEDIUM_UP,
+        MEDIUM_DOWN,
+        MEDIUM_LEFT,
+        MEDIUM_RIGHT,
         LONG_UP,
         LONG_DOWN,
         LONG_LEFT,
         LONG_RIGHT
+    }
+
+    enum SwipeDistance {
+        NONE,
+        SHORT,
+        MEDIUM,
+        LONG
     }
 
     enum CapsType {
@@ -84,13 +96,19 @@ public class Chorded extends InputMethodService {
         SYM_IN_TREE
     }
 
+    enum VibrationType {
+        CHORD_SUBTREE,
+        CHORD_SUBMIT,
+        SWIPE
+    }
+
     private static float norm(float n1, float n2)
     {
         return (float)Math.sqrt((n1 * n1) + (n2 * n2));
     }
 
     @NonNull
-    private SwipeDirection toSwipeDirection(float deltaX, float deltaY, float swipeThresholdSmall, float swipeThresholdBig)
+    private SwipeDirection toSwipeDirection(float deltaX, float deltaY, float swipeThresholdSmall, float swipeThresholdMedium, float swipeThresholdBig)
     {
         float swipe_length = norm(deltaX, deltaY);
         if(swipe_length < swipeThresholdSmall)
@@ -98,8 +116,10 @@ public class Chorded extends InputMethodService {
             return SwipeDirection.NONE;
         }
 
-        double direction = Math.atan2((double)deltaX, (double)deltaY) * (180/Math.PI) + settings.comfort_angle;
-        boolean long_swipe = swipe_length < swipeThresholdBig;
+        double direction = Math.atan2((double)deltaX, (double)deltaY) * (180/Math.PI) + (settings.left_handed_mode ? -settings.comfort_angle : settings.comfort_angle);
+        SwipeDistance swipe_length_class = SwipeDistance.SHORT;
+        if(swipe_length >= swipeThresholdMedium) swipe_length_class = SwipeDistance.MEDIUM;
+        if(swipe_length >= swipeThresholdBig) swipe_length_class = SwipeDistance.LONG;
 
         if(direction > 180.0)
         {
@@ -111,17 +131,38 @@ public class Chorded extends InputMethodService {
 
         if(direction >= 45.0 && direction < 135.0)
         {
-            return long_swipe ? SwipeDirection.SHORT_RIGHT : SwipeDirection.LONG_RIGHT;
+            switch(swipe_length_class)
+            {
+                case SHORT: return SwipeDirection.SHORT_RIGHT;
+                case MEDIUM: return SwipeDirection.MEDIUM_RIGHT;
+                case LONG: return SwipeDirection.LONG_RIGHT;
+            }
         } else if (direction >= 135.0 || direction <= -135.0)
         {
-            return long_swipe ? SwipeDirection.SHORT_UP : SwipeDirection.LONG_UP;
+            switch(swipe_length_class)
+            {
+                case SHORT: return SwipeDirection.SHORT_UP;
+                case MEDIUM: return SwipeDirection.MEDIUM_UP;
+                case LONG: return SwipeDirection.LONG_UP;
+            }
         } else if ((direction < 45.0 && direction >= 0.0) || (direction < 0.0 && direction >= -45.0))
         {
-            return long_swipe ? SwipeDirection.SHORT_DOWN : SwipeDirection.LONG_DOWN;
+            switch(swipe_length_class)
+            {
+                case SHORT: return SwipeDirection.SHORT_DOWN;
+                case MEDIUM: return SwipeDirection.MEDIUM_DOWN;
+                case LONG: return SwipeDirection.LONG_DOWN;
+            }
         } else
         {
-            return long_swipe ? SwipeDirection.SHORT_LEFT : SwipeDirection.LONG_LEFT;
+            switch(swipe_length_class)
+            {
+                case SHORT: return SwipeDirection.SHORT_LEFT;
+                case MEDIUM: return SwipeDirection.MEDIUM_LEFT;
+                case LONG: return SwipeDirection.LONG_LEFT;
+            }
         }
+        return SwipeDirection.NONE;
     }
 
     @Override
@@ -136,6 +177,13 @@ public class Chorded extends InputMethodService {
                 return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    private void performVibrate(VibrationType type, long millis)
+    {
+        if(settings.vibration_type.contains(type)) {
+            vibrator.vibrate(millis);
+        }
     }
 
     private void performBackspace()
@@ -199,6 +247,9 @@ public class Chorded extends InputMethodService {
     private void performSpace()
     {
         ic.commitText(" ",  1);
+        resetRoot();
+        buttonpress_chord = 0;
+        relabelKeys();
     }
 
     private void toggleSym()
@@ -274,50 +325,41 @@ public class Chorded extends InputMethodService {
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_POINTER_UP:
                     float swipeX = eventtype.getX() - downX, swipeY = eventtype.getY() - downY;
-                    SwipeDirection swiped = toSwipeDirection(swipeX, swipeY, kv.getWidth() / 5.0f, kv.getWidth() / 1.33f);
+                    SwipeDirection swiped = toSwipeDirection(swipeX, swipeY, root_view.getWidth() / 5.0f, root_view.getWidth() / 2.5f, root_view.getWidth() / 1.33f);
                     if(swiped != SwipeDirection.NONE) {
                         switch (swiped) {
                             case SHORT_UP:
+                                break;
+                            case MEDIUM_UP:
                             case LONG_UP:
                                 if (sym != SymType.SYM_ON) {
                                     performShift();
                                 } else {
                                     toggleSym();
                                 }
-                                if(settings.vibrate_on_swipe)
-                                {
-                                    if(vibrator != null) vibrator.vibrate(35);
-                                }
+                                performVibrate(VibrationType.SWIPE, 35);
                                 break;
                             case SHORT_DOWN:
+                                break;
+                            case MEDIUM_DOWN:
                             case LONG_DOWN:
                                 toggleSym();
-                                if(settings.vibrate_on_swipe)
-                                {
-                                    if(vibrator != null) vibrator.vibrate(35);
-                                }
+                                performVibrate(VibrationType.SWIPE, 35);
                                 break;
                             case SHORT_LEFT:
+                            case MEDIUM_LEFT:
                                 performBackspace();
-                                if(settings.vibrate_on_swipe)
-                                {
-                                    if(vibrator != null) vibrator.vibrate(25);
-                                }
+                                performVibrate(VibrationType.SWIPE, 25);
                                 break;
                             case LONG_LEFT:
                                 performDeleteWord();
-                                if(settings.vibrate_on_swipe)
-                                {
-                                    if(vibrator != null) vibrator.vibrate(35);
-                                }
+                                performVibrate(VibrationType.SWIPE, 35);
                                 break;
                             case SHORT_RIGHT:
+                            case MEDIUM_RIGHT:
                             case LONG_RIGHT:
                                 performSpace();
-                                if(settings.vibrate_on_swipe)
-                                {
-                                    if(vibrator != null) vibrator.vibrate(25);
-                                }
+                                performVibrate(VibrationType.SWIPE, 25);
                                 break;
                         }
                         buttonpress_current = 0;
@@ -341,6 +383,7 @@ public class Chorded extends InputMethodService {
                                     break;
                                 case R.id.chord_four:
                                     buttonpress_current = buttonpress_current & ~0b1000;
+                                    break;
                             }
                             // Only commit when all are released
                             if (buttonpress_current != 0) {
@@ -352,7 +395,7 @@ public class Chorded extends InputMethodService {
                                 curNode = curNode.children.get(keylookup[buttonpress_chord]);
                                 if (curNode.children.size() == 0) {
                                     // Reached the end. Commit the current letter.
-                                    if(vibrator != null) vibrator.vibrate(25);
+                                    performVibrate(VibrationType.CHORD_SUBMIT, 25);
                                     String inputchar = curNode.resultString;
                                     if ((caps != CapsType.LOWER) && inputchar.length() == 1 && Character.isAlphabetic(inputchar.charAt(0))) {
                                         inputchar = inputchar.toUpperCase();
@@ -364,7 +407,7 @@ public class Chorded extends InputMethodService {
                                     ic.commitText(String.valueOf(inputchar), 1);
                                     resetRoot();
                                 } else {
-                                    if(vibrator != null) vibrator.vibrate(15);
+                                    performVibrate(VibrationType.CHORD_SUBTREE, 15);
                                 }
                                 buttonpress_chord = 0;
                             } else {
@@ -393,14 +436,16 @@ public class Chorded extends InputMethodService {
         //int hardware_buttons_count = WearableButtons.getButtonCount(getBaseContext());
         switch(settings.keyboard_type) {
             case TWOFINGER:
-                kv = getLayoutInflater().inflate(R.layout.twochord, null);
+                root_view = getLayoutInflater().inflate(R.layout.twochord, null);
                 tree = new HuffmanTree(3);
                 sym_tree = new HuffmanTree(3);
                 //                     01  10  11
-                keylookup = new int[]{-1, 0, 1, 2};
+                keylookup = settings.left_handed_mode ?
+                        new int[]{-1, 1, 0, 2}:
+                        new int[]{-1, 0, 1, 2};
                 break;
             case THREEFINGER:
-                kv = getLayoutInflater().inflate(R.layout.threechord, null);
+                root_view = getLayoutInflater().inflate(R.layout.threechord, null);
                 sym_tree = new HuffmanTree(6);
                 // Middle finger is strongest. My device did not support 3-finger tap.
                 tree = new HuffmanTree(6);
@@ -416,48 +461,75 @@ public class Chorded extends InputMethodService {
                 // To aid the visual, this would be the LEFT hand.
                 //  12
                 //  34
-                kv = getLayoutInflater().inflate(R.layout.twoxtwochord, null);
+                root_view = getLayoutInflater().inflate(R.layout.twoxtwochord, null);
                 sym_tree = new HuffmanTree(8);
                 tree = new HuffmanTree(8);
-                //                      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-                //                        10 01 11 00 10 01 11 00 10 01 11 00 10 01 11
-                //                        00 00 00 10 10 10 10 01 01 01 01 11 11 11 11
+                //                  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+                //                    10 01 11 00 10 01 11 00 10 01 11 00 10 01 11
+                //                    00 00 00 10 10 10 10 01 01 01 01 11 11 11 11
                 keylookup = new int[]{ -1, 1, 0, 4, 3,-1, 6,-1, 2, 7,-1,-1, 5,-1,-1,-1};
             case TWOXTWOFINGERHALFSTRETCH:
                 // Same as above but ignore the bottom left, top right chord
-                kv = getLayoutInflater().inflate(R.layout.twoxtwochord, null);
+                root_view = getLayoutInflater().inflate(R.layout.twoxtwochord, null);
                 sym_tree = new HuffmanTree(7);
                 tree = new HuffmanTree(7);
                 keylookup = new int[]{ -1, 1, 0, 4, 3,-1, 6,-1, 2,-1,-1,-1, 5,-1,-1,-1};
                 break;
             case TWOXTWOFINGERNOSTRETCH:
                 // Same as above but ignore any chord requiring diagonals
-                kv = getLayoutInflater().inflate(R.layout.twoxtwochord, null);
+                root_view = getLayoutInflater().inflate(R.layout.twoxtwochord, null);
                 sym_tree = new HuffmanTree(6);
                 tree = new HuffmanTree(6);
                 keylookup = new int[]{ -1, 1, 0, 4, 3,-1,-1,-1, 2,-1,-1,-1, 5,-1,-1,-1};
                 break;
         }
-        final Button button_return = kv.findViewById(R.id.button_return);
+        final ExtractEditText eet = root_view.findViewById(R.id.inputExtractEditText);
+        eet.setOnTouchListener(onPress);
+        final Button button_return = root_view.findViewById(R.id.button_return);
         button_return.setOnTouchListener(onPress);
-        final Button chord_one = kv.findViewById(R.id.chord_one);
+        final Button chord_one = root_view.findViewById(R.id.chord_one);
         chord_one.setOnTouchListener(onPress);
-        final Button chord_two = kv.findViewById(R.id.chord_two);
+        final Button chord_two = root_view.findViewById(R.id.chord_two);
         chord_two.setOnTouchListener(onPress);
-        final Button chord_three = kv.findViewById(R.id.chord_three);
+        final Button chord_three = root_view.findViewById(R.id.chord_three);
         if(chord_three != null) chord_three.setOnTouchListener(onPress);
-        final Button chord_four = kv.findViewById(R.id.chord_four);
+        final Button chord_four = root_view.findViewById(R.id.chord_four);
         if(chord_four != null) chord_four.setOnTouchListener(onPress);
 
-        kv.setRotation(settings.comfort_angle);
+        root_view.setRotation(settings.left_handed_mode ?
+                -settings.comfort_angle:
+                settings.comfort_angle);
+        if(settings.left_handed_mode)
+        {
+            // If in left-handed mode, literally swap the IDs of chords
+            switch(settings.keyboard_type)
+            {
+                case TWOFINGER:
+                    chord_one.setId(R.id.chord_two);
+                    chord_two.setId(R.id.chord_one);
+                    break;
+                case THREEFINGER:
+                    chord_one.setId(R.id.chord_three);
+                    chord_three.setId(R.id.chord_one);
+                    break;
+                case TWOXTWOFINGER:
+                case TWOXTWOFINGERHALFSTRETCH:
+                case TWOXTWOFINGERNOSTRETCH:
+                    chord_one.setId(R.id.chord_two);
+                    chord_two.setId(R.id.chord_one);
+                    chord_three.setId(R.id.chord_four);
+                    chord_four.setId(R.id.chord_three);
+                    break;
+            }
+        }
 
-        // kv has no root view and therefore has no idea what size it should be.
+        // root_view has no root view and therefore has no idea what size it should be.
         WindowManager wm = (WindowManager) getBaseContext().getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         Point total_size = new Point();
         display.getSize(total_size);
-        kv.setMinimumHeight(total_size.y);
-        kv.setMinimumWidth(total_size.x);
+        root_view.setMinimumHeight(total_size.y);
+        root_view.setMinimumWidth(total_size.x);
 
         // set space width to an ideal value
         DisplayMetrics displaymetrics = new DisplayMetrics();
@@ -466,13 +538,12 @@ public class Chorded extends InputMethodService {
         double h = total_size.x/2.0;
         double a = h - return_button_height;
         double o = Math.sqrt((h*h) - (a*a));
-        View space_inputlead = kv.findViewById(R.id.space_inputlead);
+        View space_inputlead = root_view.findViewById(R.id.space_inputlead);
         ViewGroup.LayoutParams lp = space_inputlead.getLayoutParams();
         lp.width = (int)(h - o);
         space_inputlead.setLayoutParams(lp);
 
-        if(settings.enable_vibrate)
-            vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         buttonpress_chord = 0;
         buttonpress_current = 0;
 
@@ -573,7 +644,7 @@ public class Chorded extends InputMethodService {
             inp.add(new HuffmanNode(" ", 14.727, "␣"));
         }
         tree.CreateEncoding(inp);
-        return kv;
+        return root_view;
     }
 
     @Override
@@ -619,7 +690,7 @@ public class Chorded extends InputMethodService {
         relabelKeys();
         resetText();
 
-        ExtractEditText editText = kv.findViewById(R.id.inputExtractEditText);
+        ExtractEditText editText = root_view.findViewById(R.id.inputExtractEditText);
         if((info.inputType & InputType.TYPE_TEXT_VARIATION_PASSWORD) > 0)
         {
             editText.setTransformationMethod(PasswordTransformationMethod.getInstance());
@@ -643,10 +714,10 @@ public class Chorded extends InputMethodService {
     }
 
     private void relabelKeys() {
-        Button chord_one = kv.findViewById(R.id.chord_one);
-        Button chord_two = kv.findViewById(R.id.chord_two);
-        Button chord_three = kv.findViewById(R.id.chord_three);
-        Button chord_four = kv.findViewById(R.id.chord_four);
+        Button chord_one = root_view.findViewById(R.id.chord_one);
+        Button chord_two = root_view.findViewById(R.id.chord_two);
+        Button chord_three = root_view.findViewById(R.id.chord_three);
+        Button chord_four = root_view.findViewById(R.id.chord_four);
 
         switch (settings.keyboard_type) {
             case TWOFINGER:
@@ -700,13 +771,13 @@ public class Chorded extends InputMethodService {
 
     @Override
     public void onUpdateExtractedText(int token, ExtractedText text) {
-        ExtractEditText editText = kv.findViewById(R.id.inputExtractEditText);
+        ExtractEditText editText = root_view.findViewById(R.id.inputExtractEditText);
         editText.setExtractedText(text);
         super.onUpdateExtractedText(token, text);
     }
 
     private void resetText() {
-        ExtractEditText editText = kv.findViewById(R.id.inputExtractEditText);
+        ExtractEditText editText = root_view.findViewById(R.id.inputExtractEditText);
         ExtractedTextRequest etr = new ExtractedTextRequest();
         etr.token = 0;
         ExtractedText et = ic.getExtractedText(etr, 0);

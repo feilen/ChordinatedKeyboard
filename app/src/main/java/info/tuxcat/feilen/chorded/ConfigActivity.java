@@ -53,6 +53,61 @@ public class ConfigActivity extends WearableActivity {
             }
         });
 
+        Switch mLeftSwitch = findViewById(R.id.left_handed_switch);
+        mLeftSwitch.setChecked(settings.left_handed_mode);
+        mLeftSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(@NonNull View view) {
+                settings.left_handed_mode = ((Switch) view).isChecked();
+                settings.saveSettings(getApplicationContext());
+            }
+        });
+
+        Switch chordpressswitch = findViewById(R.id.vibrate_chord_press_switch);
+        chordpressswitch.setChecked(settings.vibration_type.contains(Chorded.VibrationType.CHORD_SUBTREE));
+        chordpressswitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(@NonNull View view) {
+                if(((Switch) view).isChecked())
+                {
+                    settings.vibration_type.add(Chorded.VibrationType.CHORD_SUBTREE);
+                } else {
+                    settings.vibration_type.remove(Chorded.VibrationType.CHORD_SUBTREE);
+                }
+                settings.saveSettings(getApplicationContext());
+            }
+        });
+
+        Switch chordsubmitswitch = findViewById(R.id.vibrate_letter_submitted_switch);
+        chordsubmitswitch.setChecked(settings.vibration_type.contains(Chorded.VibrationType.CHORD_SUBMIT));
+        chordsubmitswitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(@NonNull View view) {
+                if(((Switch) view).isChecked())
+                {
+                    settings.vibration_type.add(Chorded.VibrationType.CHORD_SUBMIT);
+                } else {
+                    settings.vibration_type.remove(Chorded.VibrationType.CHORD_SUBMIT);
+                }
+                settings.saveSettings(getApplicationContext());
+            }
+        });
+
+        Switch swipeswitch = findViewById(R.id.vibrate_on_swipe_switch);
+        swipeswitch.setChecked(settings.vibration_type.contains(Chorded.VibrationType.SWIPE));
+        swipeswitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(@NonNull View view) {
+                if(((Switch) view).isChecked())
+                {
+                    settings.vibration_type.add(Chorded.VibrationType.SWIPE);
+                } else {
+                    settings.vibration_type.remove(Chorded.VibrationType.SWIPE);
+                }
+                settings.saveSettings(getApplicationContext());
+            }
+        });
+
         RadioGroup layoutgroup = findViewById(R.id.layout_radiogroup);
         for(int i = 0; i < layoutgroup.getChildCount(); i++)
         {
