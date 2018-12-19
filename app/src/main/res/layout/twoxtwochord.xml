@@ -28,7 +28,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@color/common_google_signin_btn_text_light_pressed"
+            android:background="@color/black"
             android:inputType="text"
             android:maxLines="1"
             android:textAlignment="textEnd"
@@ -61,6 +61,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/chord_button_top_right"
+                android:text="ABCDEFGHIJKL\nABCDEFGHIJKL\nABCDEFGHIJKL"
                 android:textSize="12sp" />
 
             <Button
@@ -70,6 +71,10 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/chord_button_top_right"
+                android:gravity="center_horizontal"
+                android:paddingLeft="25sp"
+                android:paddingTop="2sp"
+                android:text="'\n:\n)(*;^@[{}|$$#`]"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -86,6 +91,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/chord_button_top_left"
+                android:text="ABCDEFGHIJKL\nABCDEFGHIJKL\nABCDEFGHIJKL"
                 android:textSize="12sp" />
 
             <Button
@@ -95,6 +101,10 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/chord_button_top_left"
+                android:gravity="top|center_horizontal"
+                android:paddingTop="2sp"
+                android:paddingRight="25sp"
+                android:text="0123456789\n\n)(*;^@[{}|$$#`]"
                 android:textSize="12sp" />
         </LinearLayout>
 

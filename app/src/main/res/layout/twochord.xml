@@ -28,7 +28,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@color/common_google_signin_btn_text_light_pressed"
+            android:background="@color/black"
             android:inputType="text"
             android:maxLines="1"
             android:textAlignment="textEnd"
@@ -52,7 +52,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/chord_button_top_right" />
+            android:background="@drawable/chord_button_top_right"
+            android:paddingLeft="3sp"
+            android:paddingBottom="35dp"
+            android:text="text" />
 
         <Button
             android:id="@+id/chord_two"
@@ -60,6 +63,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/chord_button_top_left" />
+            android:background="@drawable/chord_button_top_left"
+            android:paddingRight="3sp"
+            android:paddingBottom="35dp" />
     </LinearLayout>
 </LinearLayout>

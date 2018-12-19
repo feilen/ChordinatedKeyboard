@@ -717,8 +717,15 @@ public class Chorded extends InputMethodService {
         //String label = "";
         for(int chord: chords)
         {
-            label.append((curNode.children.size() >= keylookup[chord])? curNode.children.get(keylookup[chord]).displayString + "\n" : "\n");
+            if(chord == -1)
+            {
+                label.append("\n");
+            } else {
+                label.append((curNode.children.size() >= keylookup[chord])? curNode.children.get(keylookup[chord]).displayString + "\n" : "\n");
+            }
         }
+        // lazy remove newline
+        label.deleteCharAt(label.length() - 1);
         return is_caps ? label.toString().toUpperCase() : label.toString();
     }
 
@@ -745,10 +752,10 @@ public class Chorded extends InputMethodService {
                 chord_four.setText(getKeyLabel(new int[]{8, 9, 12}, caps != CapsType.LOWER));
                 break;
             case TWOXTWOFINGERHALFSTRETCH:
-                chord_one.setText(getKeyLabel(new int[]{1, 3}, caps != CapsType.LOWER));
+                chord_one.setText(getKeyLabel(new int[]{1, 3, -1}, caps != CapsType.LOWER));
                 chord_two.setText(getKeyLabel(new int[]{2, 3, 6}, caps != CapsType.LOWER));
                 chord_three.setText(getKeyLabel(new int[]{4, 6, 12}, caps != CapsType.LOWER));
-                chord_four.setText(getKeyLabel(new int[]{8, 12}, caps != CapsType.LOWER));
+                chord_four.setText(getKeyLabel(new int[]{8, -1, 12}, caps != CapsType.LOWER));
                 break;
             case TWOXTWOFINGERNOSTRETCH:
                 chord_one.setText(getKeyLabel(new int[]{1, 3}, caps != CapsType.LOWER));
