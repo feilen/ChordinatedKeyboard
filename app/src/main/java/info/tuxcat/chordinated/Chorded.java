@@ -11,6 +11,7 @@ import android.support.annotation.Nullable;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.KeyEvent;
@@ -53,7 +54,13 @@ public class Chorded extends InputMethodService {
     private int buttonpress_current;
     private int buttonpress_chord;
 
+    boolean is_chorded = false;
+
     enum KeyboardType {
+        SETUP_WELCOME_SCREEN,
+        SETUP_CHECKING_CHORDS,
+        SETUP_CHOOSING_BUTTONS,
+        SETUP_CONFIRMATION_DIALOG,
         TWOFINGER,
         THREEFINGER,
         TWOXTWOFINGER,
@@ -286,19 +293,30 @@ public class Chorded extends InputMethodService {
         }
     }
 
-    private float downX, downY;
+
     @Nullable
     private final View.OnTouchListener onPress = new View.OnTouchListener()
     {
+        private float downX, downY;
+
         @Override
         public boolean onTouch(@NonNull View button, MotionEvent eventtype)
         {
+            if(settings.keyboard_type == KeyboardType.SETUP_WELCOME_SCREEN ||
+                    settings.keyboard_type == KeyboardType.SETUP_CHECKING_CHORDS ||
+                    settings.keyboard_type == KeyboardType.SETUP_CHOOSING_BUTTONS ||
+                    settings.keyboard_type == KeyboardType.SETUP_CONFIRMATION_DIALOG)
+            {
+                return onTouchSetupMode(button, eventtype);
+            }
+
             switch(eventtype.getAction())
             {
                 case MotionEvent.ACTION_DOWN:
                 case MotionEvent.ACTION_POINTER_DOWN:
                     downX = eventtype.getX();
                     downY = eventtype.getY();
+
                     switch(button.getId())
                     {
                         case R.id.chord_one:
@@ -324,71 +342,84 @@ public class Chorded extends InputMethodService {
                     return true;
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_POINTER_UP:
-                    float swipeX = eventtype.getX() - downX, swipeY = eventtype.getY() - downY;
-                    SwipeDirection swiped = toSwipeDirection(swipeX, swipeY, root_view.getWidth() / 5.0f, root_view.getWidth() / 2.5f, root_view.getWidth() / 1.33f);
-                    if(swiped != SwipeDirection.NONE) {
-                        switch (swiped) {
-                            case SHORT_UP:
-                                break;
-                            case MEDIUM_UP:
-                            case LONG_UP:
-                                if (sym != SymType.SYM_ON) {
-                                    performShift();
-                                } else {
-                                    toggleSym();
-                                }
-                                performVibrate(VibrationType.SWIPE, 35);
-                                break;
-                            case SHORT_DOWN:
-                                break;
-                            case MEDIUM_DOWN:
-                            case LONG_DOWN:
-                                toggleSym();
-                                performVibrate(VibrationType.SWIPE, 35);
-                                break;
-                            case SHORT_LEFT:
-                            case MEDIUM_LEFT:
-                                performBackspace();
-                                performVibrate(VibrationType.SWIPE, 25);
-                                break;
-                            case LONG_LEFT:
-                                performDeleteWord();
-                                performVibrate(VibrationType.SWIPE, 35);
-                                break;
-                            case SHORT_RIGHT:
-                            case MEDIUM_RIGHT:
-                            case LONG_RIGHT:
-                                performSpace();
-                                performVibrate(VibrationType.SWIPE, 25);
-                                break;
-                        }
-                        buttonpress_current = 0;
-                        buttonpress_chord = 0;
+                    switch (button.getId()) {
+                        case R.id.chord_one:
+                            buttonpress_current = buttonpress_current & ~0b0001;
+                            break;
+                        case R.id.chord_two:
+                            buttonpress_current = buttonpress_current & ~0b0010;
+                            break;
+                        case R.id.chord_three:
+                            buttonpress_current = buttonpress_current & ~0b0100;
+                            break;
+                        case R.id.chord_four:
+                            buttonpress_current = buttonpress_current & ~0b1000;
+                            break;
+                    }
+                    // Only commit when all are released
+                    if (buttonpress_current != 0) {
                         break;
+                    }
+
+                    // Only process swipes if a single DOWN action has been detected
+                    switch(buttonpress_chord)
+                    {
+                        case 0b0001:
+                        case 0b0010:
+                        case 0b0100:
+                        case 0b1000:
+                            float swipeX = eventtype.getX() - downX, swipeY = eventtype.getY() - downY;
+                            SwipeDirection swiped = toSwipeDirection(swipeX, swipeY, root_view.getWidth() / 5.0f, root_view.getWidth() / 2.5f, root_view.getWidth() / 1.33f);
+                            if(swiped != SwipeDirection.NONE) {
+                                switch (swiped) {
+                                    case SHORT_UP:
+                                        break;
+                                    case MEDIUM_UP:
+                                    case LONG_UP:
+                                        if (sym != SymType.SYM_ON) {
+                                            performShift();
+                                        } else {
+                                            toggleSym();
+                                        }
+                                        performVibrate(VibrationType.SWIPE, 35);
+                                        break;
+                                    case SHORT_DOWN:
+                                        break;
+                                    case MEDIUM_DOWN:
+                                    case LONG_DOWN:
+                                        toggleSym();
+                                        performVibrate(VibrationType.SWIPE, 35);
+                                        break;
+                                    case SHORT_LEFT:
+                                    case MEDIUM_LEFT:
+                                        performBackspace();
+                                        performVibrate(VibrationType.SWIPE, 25);
+                                        break;
+                                    case LONG_LEFT:
+                                        performDeleteWord();
+                                        performVibrate(VibrationType.SWIPE, 35);
+                                        break;
+                                    case SHORT_RIGHT:
+                                    case MEDIUM_RIGHT:
+                                    case LONG_RIGHT:
+                                        performSpace();
+                                        performVibrate(VibrationType.SWIPE, 25);
+                                        break;
+                                }
+                                buttonpress_current = 0;
+                                buttonpress_chord = 0;
+                                break;
+                            }
+                            break;
+                        default:
+                            break;
+
                     }
                     switch(button.getId()) {
                         case R.id.chord_one:
                         case R.id.chord_two:
                         case R.id.chord_three:
                         case R.id.chord_four:
-                            switch (button.getId()) {
-                                case R.id.chord_one:
-                                    buttonpress_current = buttonpress_current & ~0b0001;
-                                    break;
-                                case R.id.chord_two:
-                                    buttonpress_current = buttonpress_current & ~0b0010;
-                                    break;
-                                case R.id.chord_three:
-                                    buttonpress_current = buttonpress_current & ~0b0100;
-                                    break;
-                                case R.id.chord_four:
-                                    buttonpress_current = buttonpress_current & ~0b1000;
-                                    break;
-                            }
-                            // Only commit when all are released
-                            if (buttonpress_current != 0) {
-                                break;
-                            }
                             // Invalid chord. Do nothing.
                             if (keylookup[buttonpress_chord] == -1) return true;
                             if (curNode.children.size() >= keylookup[buttonpress_chord]) {
@@ -425,6 +456,33 @@ public class Chorded extends InputMethodService {
                     return true;
             }
             return false;
+        }
+
+        private final boolean onTouchSetupMode(@NonNull View button, MotionEvent eventtype)
+        {
+            switch (settings.keyboard_type)
+            {
+                case SETUP_CHECKING_CHORDS:
+                    switch(eventtype.getAction())
+                    {
+                        case MotionEvent.ACTION_DOWN:
+                            // Turn the background grey, set the text to '1'
+                            break;
+                        case MotionEvent.ACTION_POINTER_DOWN:
+                            // Turn the background white, set the text to '2'
+                            is_chorded = true;
+                            break;
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_POINTER_UP:
+                            // once both are up, go to the next screen
+                        default:
+                            return false;
+                    }
+                    return true;
+                default:
+                    // assert?
+                    return false;
+            }
         }
     };
 
@@ -477,15 +535,29 @@ public class Chorded extends InputMethodService {
                 tree = new HuffmanTree(6);
                 keylookup = new int[]{ -1, 1, 0, 4, 3,-1,-1,-1, 2,-1,-1,-1, 5,-1,-1,-1};
                 break;
+            case SETUP_WELCOME_SCREEN:
+                // Set layout to chordless, set text, set handler, exit
+                root_view = getLayoutInflater().inflate(R.layout.chordless, null);
+                break;
+            case SETUP_CHECKING_CHORDS:
+                // Set text to instructions, set handler, set layout to chordless
+                root_view = getLayoutInflater().inflate(R.layout.chordless, null);
+                break;
+            case SETUP_CHOOSING_BUTTONS:
+                // Set layout to twoxtwochord, set text, set handler
+                break;
+            case SETUP_CONFIRMATION_DIALOG:
+                // mention where to find settings
+                break;
         }
         final ExtractEditText eet = root_view.findViewById(R.id.inputExtractEditText);
-        eet.setOnTouchListener(onPress);
+        if(eet != null) eet.setOnTouchListener(onPress);
         final Button button_return = root_view.findViewById(R.id.button_return);
-        button_return.setOnTouchListener(onPress);
+        if(button_return != null) button_return.setOnTouchListener(onPress);
         final Button chord_one = root_view.findViewById(R.id.chord_one);
-        chord_one.setOnTouchListener(onPress);
+        if(chord_one != null) chord_one.setOnTouchListener(onPress);
         final Button chord_two = root_view.findViewById(R.id.chord_two);
-        chord_two.setOnTouchListener(onPress);
+        if(chord_two != null) chord_two.setOnTouchListener(onPress);
         final Button chord_three = root_view.findViewById(R.id.chord_three);
         if(chord_three != null) chord_three.setOnTouchListener(onPress);
         final Button chord_four = root_view.findViewById(R.id.chord_four);
@@ -534,9 +606,11 @@ public class Chorded extends InputMethodService {
         double a = h - return_button_height;
         double o = Math.sqrt((h*h) - (a*a));
         View space_inputlead = root_view.findViewById(R.id.space_inputlead);
-        ViewGroup.LayoutParams lp = space_inputlead.getLayoutParams();
-        lp.width = (int)(h - o);
-        space_inputlead.setLayoutParams(lp);
+        if(space_inputlead != null) {
+            ViewGroup.LayoutParams lp = space_inputlead.getLayoutParams();
+            lp.width = (int) (h - o);
+            space_inputlead.setLayoutParams(lp);
+        }
 
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         buttonpress_chord = 0;
