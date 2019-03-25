@@ -68,7 +68,8 @@ public class Chorded extends InputMethodService {
         THREEFINGER,
         TWOXTWOFINGER,
         TWOXTWOFINGERHALFSTRETCH,
-        TWOXTWOFINGERNOSTRETCH
+        TWOXTWOFINGERNOSTRETCH,
+        TWOXTWOFINGERNOCHORD
     }
 
     // TODO: This really needs to be a bitmasked interface
@@ -467,11 +468,9 @@ public class Chorded extends InputMethodService {
         private final boolean onTouchSetupMode(@NonNull View button, MotionEvent eventtype)
         {
             final Button chord_one = root_view.findViewById(R.id.chord_one);
-            switch (settings.keyboard_type)
-            {
+            switch (settings.keyboard_type) {
                 case SETUP_WELCOME_SCREEN:
-                    switch(eventtype.getAction())
-                    {
+                    switch (eventtype.getAction()) {
                         case MotionEvent.ACTION_POINTER_DOWN:
                         case MotionEvent.ACTION_DOWN:
                             break;
@@ -480,57 +479,51 @@ public class Chorded extends InputMethodService {
                             settings.keyboard_type = KeyboardType.SETUP_INTRODUCING_CHORDS;
                             recreateRootView();
                             setInputView(root_view);
+                            break;
                     }
                     return true;
                 case SETUP_INTRODUCING_CHORDS:
-                    switch(eventtype.getAction())
-                    {
+                    switch (eventtype.getAction()) {
                         case MotionEvent.ACTION_POINTER_DOWN:
                         case MotionEvent.ACTION_DOWN:
                             break;
                         case MotionEvent.ACTION_UP:
                         case MotionEvent.ACTION_POINTER_UP:
+                            setup_touch_count = 0;
                             settings.keyboard_type = KeyboardType.SETUP_CHECKING_CHORDS;
                             recreateRootView();
                             setInputView(root_view);
+                            break;
                     }
+                    return true;
                 case SETUP_CHECKING_CHORDS:
                     final ExtractEditText eet = root_view.findViewById(R.id.inputExtractEditText);
-                    switch(button.getId())
-                    {
-                        case R.id.chord_one:
-                        case R.id.chord_two:
-                            switch(eventtype.getAction())
-                            {
-                                case MotionEvent.ACTION_DOWN:
-                                case MotionEvent.ACTION_POINTER_DOWN:
-                                    setup_touch_count++;
-                                    if(setup_touch_count == 1)
-                                    {
-                                        //eet.setText("One detected.");
-                                    } else if (setup_touch_count >= 2)
-                                    {
-                                        is_chorded = true;
-                                        //eet.setText("Two detected.");
-                                    }
-                                    break;
-                                case MotionEvent.ACTION_UP:
-                                case MotionEvent.ACTION_POINTER_UP:
-                                    // once both are up, go to the next screen
-                                    setup_touch_count--;
-                                    if(setup_touch_count == 0)
-                                    {
-                                        settings.keyboard_type = KeyboardType.SETUP_CHORD_CONFIRMATION_DIALOG;
-                                        recreateRootView();
-                                        setInputView(root_view);
-                                    }
-                                default:
-                                    return false;
+                    switch (eventtype.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                        case MotionEvent.ACTION_POINTER_DOWN:
+                            setup_touch_count++;
+                            if (setup_touch_count == 1) {
+                                eet.setText("One detected.");
+                            } else if (setup_touch_count >= 2) {
+                                is_chorded = true;
+                                eet.setText("Two detected.");
                             }
-                            return true;
+                            break;
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_POINTER_UP:
+                            // once both are up, go to the next screen
+                            setup_touch_count--;
+                            if(setup_touch_count == 0)
+                            {
+                                settings.keyboard_type = KeyboardType.SETUP_CHORD_CONFIRMATION_DIALOG;
+                                recreateRootView();
+                                setInputView(root_view);
+                            }
+                            break;
                         default:
                             return false;
-                    }
+                        }
+                    return true;
                 case SETUP_CHORD_CONFIRMATION_DIALOG:
                     switch(eventtype.getAction())
                     {
@@ -555,9 +548,10 @@ public class Chorded extends InputMethodService {
                             if(is_chorded)
                             {
                                 settings.keyboard_type = KeyboardType.TWOXTWOFINGERHALFSTRETCH;
+                                settings.can_chord = true;
                             } else {
-                                // TODO: chordless layouts
-                                settings.keyboard_type = KeyboardType.THREEFINGER;
+                                settings.keyboard_type = KeyboardType.TWOXTWOFINGERNOCHORD;
+                                settings.can_chord = false;
                             }
                             settings.saveSettings(getBaseContext());
                             recreateRootView();
@@ -605,9 +599,9 @@ public class Chorded extends InputMethodService {
                 root_view = getLayoutInflater().inflate(R.layout.twoxtwochord, null);
                 sym_tree = new HuffmanTree(8);
                 tree = new HuffmanTree(8);
-                //                  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-                //                    10 01 11 00 10 01 11 00 10 01 11 00 10 01 11
-                //                    00 00 00 10 10 10 10 01 01 01 01 11 11 11 11
+                //                      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+                //                        10 01 11 00 10 01 11 00 10 01 11 00 10 01 11
+                //                        00 00 00 10 10 10 10 01 01 01 01 11 11 11 11
                 keylookup = new int[]{ -1, 1, 0, 4, 3,-1, 6,-1, 2, 7,-1,-1, 5,-1,-1,-1};
             case TWOXTWOFINGERHALFSTRETCH:
                 // Same as above but ignore the bottom left, top right chord
@@ -622,6 +616,13 @@ public class Chorded extends InputMethodService {
                 sym_tree = new HuffmanTree(6);
                 tree = new HuffmanTree(6);
                 keylookup = new int[]{ -1, 1, 0, 4, 3,-1,-1,-1, 2,-1,-1,-1, 5,-1,-1,-1};
+                break;
+            case TWOXTWOFINGERNOCHORD:
+                // Same as above but no chords
+                root_view = getLayoutInflater().inflate(R.layout.twoxtwochord, null);
+                sym_tree = new HuffmanTree(4);
+                tree = new HuffmanTree(4);
+                keylookup = new int[]{ -1, 1, 0, -1, 3,-1,-1,-1, 2,-1,-1,-1,-1,-1,-1,-1};
                 break;
             case SETUP_WELCOME_SCREEN:
                 // Set layout to chordless, set text, set handler, exit
@@ -688,8 +689,6 @@ public class Chorded extends InputMethodService {
             case SETUP_CHECKING_CHORDS:
                 chord_one.setText("Press here");
                 chord_two.setText("Press here");
-                chord_one.invalidate();
-                chord_two.invalidate();
                 return;
             case SETUP_CHORD_CONFIRMATION_DIALOG:
                 if(is_chorded)
@@ -723,6 +722,7 @@ public class Chorded extends InputMethodService {
                 case TWOXTWOFINGER:
                 case TWOXTWOFINGERHALFSTRETCH:
                 case TWOXTWOFINGERNOSTRETCH:
+                case TWOXTWOFINGERNOCHORD:
                     chord_one.setId(R.id.chord_two);
                     chord_two.setId(R.id.chord_one);
                     chord_three.setId(R.id.chord_four);
@@ -966,7 +966,12 @@ public class Chorded extends InputMethodService {
                 chord_three.setText(getKeyLabel(new int[]{4, 12}, caps != CapsType.LOWER));
                 chord_four.setText(getKeyLabel(new int[]{8, 12}, caps != CapsType.LOWER));
                 break;
-
+            case TWOXTWOFINGERNOCHORD:
+                chord_one.setText(getKeyLabel(new int[]{1}, caps != CapsType.LOWER));
+                chord_two.setText(getKeyLabel(new int[]{2}, caps != CapsType.LOWER));
+                chord_three.setText(getKeyLabel(new int[]{4}, caps != CapsType.LOWER));
+                chord_four.setText(getKeyLabel(new int[]{8}, caps != CapsType.LOWER));
+                break;
         }
         if (caps == CapsType.CAPS && sym != SymType.SYM_ON)
         {

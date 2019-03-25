@@ -115,7 +115,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="2x2 Fingers, No Diagonals" />
+                        android:text="2x2 Fingers, No diagonals" />
+
+                    <RadioButton
+                        android:id="@+id/radio_2x2nochord"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="2x2 Fingers, No chords" />
 
                     <RadioButton
                         android:id="@+id/radio_2x2"

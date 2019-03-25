@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
@@ -119,27 +120,33 @@ public class ConfigActivity extends WearableActivity {
         });
 
         RadioGroup layoutgroup = findViewById(R.id.layout_radiogroup);
-        for(int i = 0; i < layoutgroup.getChildCount(); i++)
-        {
-            RadioButton button = (RadioButton) layoutgroup.getChildAt(i);
-            switch(button.getId())
-            {
-                case R.id.radio_2finger:
-                    button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOFINGER);
-                    break;
-                case R.id.radio_3finger:
-                    button.setChecked(settings.keyboard_type == Chorded.KeyboardType.THREEFINGER);
-                    break;
-                case R.id.radio_2x2:
-                    button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWOFINGER);
-                    break;
-                case R.id.radio_2x2halfstretch:
-                    button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWOFINGERHALFSTRETCH);
-                    break;
-                case R.id.radio_2x2nostretch:
-                    button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWOFINGERNOSTRETCH);
-                    break;
+        if(settings.can_chord) {
+            for (int i = 0; i < layoutgroup.getChildCount(); i++) {
+                RadioButton button = (RadioButton) layoutgroup.getChildAt(i);
+                switch (button.getId()) {
+                    case R.id.radio_2finger:
+                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOFINGER);
+                        break;
+                    case R.id.radio_3finger:
+                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.THREEFINGER);
+                        break;
+                    case R.id.radio_2x2:
+                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWOFINGER);
+                        break;
+                    case R.id.radio_2x2halfstretch:
+                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWOFINGERHALFSTRETCH);
+                        break;
+                    case R.id.radio_2x2nostretch:
+                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWOFINGERNOSTRETCH);
+                        break;
+                    case R.id.radio_2x2nochord:
+                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWOFINGERNOCHORD);
+                        break;
+                }
             }
+        } else {
+            // Don't let them configure the layout if it's unchorded.
+            ((LinearLayout)layoutgroup.getParent()).removeView(layoutgroup);
         }
         layoutgroup.setOnCheckedChangeListener(
                 new RadioGroup.OnCheckedChangeListener() {
@@ -161,6 +168,9 @@ public class ConfigActivity extends WearableActivity {
                                 break;
                             case R.id.radio_2x2nostretch:
                                 settings.keyboard_type = Chorded.KeyboardType.TWOXTWOFINGERNOSTRETCH;
+                                break;
+                            case R.id.radio_2x2nochord:
+                                settings.keyboard_type = Chorded.KeyboardType.TWOXTWOFINGERNOCHORD;
                                 break;
                         }
                         settings.saveSettings(getApplicationContext());
