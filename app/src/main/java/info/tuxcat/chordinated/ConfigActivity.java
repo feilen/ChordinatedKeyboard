@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
@@ -21,6 +22,16 @@ public class ConfigActivity extends WearableActivity {
 
         settings = new SettingsContainer();
         settings.loadSettings(getApplicationContext());
+
+        final Button button_reset_settings = findViewById(R.id.button_reset_settings);
+        button_reset_settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                settings.resetSettings();
+                settings.saveSettings(getApplicationContext());
+                finish();
+            }
+        });
 
         final Switch mSymSwitch = findViewById(R.id.sym_switch);
         mSymSwitch.setChecked(settings.symbols_in_tree);

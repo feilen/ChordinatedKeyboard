@@ -214,6 +214,12 @@
                     android:layout_height="wrap_content"
                     android:text="On Swipe" />
 
+                <Button
+                    android:id="@+id/button_reset_settings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Reset settings" />
+
                 <Space
                     android:layout_width="match_parent"
                     android:layout_height="50dp" />

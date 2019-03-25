@@ -21,6 +21,7 @@ class SettingsContainer {
     boolean space_in_tree;
     boolean auto_shift;
     boolean left_handed_mode;
+    boolean can_chord;
     float comfort_angle;
     EnumSet<Chorded.VibrationType> vibration_type = EnumSet.noneOf(Chorded.VibrationType.class);
     Chorded.KeyboardType keyboard_type;
@@ -34,7 +35,8 @@ class SettingsContainer {
                 && left_handed_mode == o.left_handed_mode
                 && comfort_angle == o.comfort_angle
                 && vibration_type.equals(o.vibration_type)
-                && keyboard_type.equals(o.keyboard_type);
+                && keyboard_type.equals(o.keyboard_type)
+                && can_chord == o.can_chord;
     }
 
     public void saveSettings(@NonNull Context context)
@@ -46,6 +48,7 @@ class SettingsContainer {
         editor.putBoolean(context.getString(R.string.preference_key_space_in_tree), space_in_tree);
         editor.putBoolean(context.getString(R.string.preference_key_auto_shift), auto_shift);
         editor.putBoolean(context.getString(R.string.preference_key_left_handed_mode), left_handed_mode);
+        editor.putBoolean(context.getString(R.string.preference_key_can_chord), can_chord);
         editor.putFloat(context.getString(R.string.preference_key_comfort_angle), comfort_angle);
 
         // Store vibration
@@ -72,9 +75,27 @@ class SettingsContainer {
                 break;
             case TWOXTWOFINGERNOSTRETCH:
                 editor.putString(context.getString(R.string.preference_key_layout), "TWOXTWOFINGERNOSTRETCH");
+            case SETUP_CHECKING_CHORDS:
+            case SETUP_CHORD_CONFIRMATION_DIALOG:
+            case SETUP_WELCOME_SCREEN:
+            case SETUP_SETTINGS_CONFIRMATION_DIALOG:
+                editor.putString(context.getString(R.string.preference_key_layout), "SETUP");
                 break;
         }
         editor.apply();
+    }
+
+    public void resetSettings()
+    {
+        version = CURRENT_VERSION;
+        symbols_in_tree = false;
+        space_in_tree = false;
+        left_handed_mode = false;
+        auto_shift = true;
+        can_chord = false;
+        keyboard_type = Chorded.KeyboardType.SETUP_WELCOME_SCREEN;
+        vibration_type = EnumSet.allOf(Chorded.VibrationType.class);
+        comfort_angle = -20.0f;
     }
 
     public void loadSettings(@NonNull Context context)
@@ -86,19 +107,13 @@ class SettingsContainer {
             default:
             case "undefined":
                 // Just set defaults.
-                version = CURRENT_VERSION;
-                symbols_in_tree = false;
-                space_in_tree = false;
-                left_handed_mode = false;
-                auto_shift = true;
-                keyboard_type = Chorded.KeyboardType.TWOXTWOFINGERHALFSTRETCH;
-                vibration_type = EnumSet.allOf(Chorded.VibrationType.class);
-                comfort_angle = -20.0f;
+                resetSettings();
                 break;
             case "1.0":
                 symbols_in_tree = prefs.getBoolean(context.getResources().getString(R.string.preference_key_sym_in_tree), false);
                 space_in_tree = prefs.getBoolean(context.getResources().getString(R.string.preference_key_space_in_tree), false);
                 left_handed_mode = prefs.getBoolean(context.getResources().getString(R.string.preference_key_left_handed_mode), false);
+                can_chord = prefs.getBoolean(context.getString(R.string.preference_key_can_chord), false);
                 auto_shift = prefs.getBoolean(context.getString(R.string.preference_key_auto_shift), true);
                 comfort_angle = prefs.getFloat(context.getString(R.string.preference_key_comfort_angle), -20.0f);
                 Set<String> vibration_set = prefs.getStringSet(context.getString(R.string.preference_key_vibration_type), new HashSet<>(Collections.singletonList("undefined")));
@@ -124,9 +139,12 @@ class SettingsContainer {
                     case "TWOXTWOFINGERNOSTRETCH":
                         keyboard_type = Chorded.KeyboardType.TWOXTWOFINGERNOSTRETCH;
                         break;
-                    case "undefined":
                     case "TWOXTWOFINGERHALFSTRETCH":
                         keyboard_type = Chorded.KeyboardType.TWOXTWOFINGERHALFSTRETCH;
+                        break;
+                    case "undefined":
+                    case "SETUP":
+                        keyboard_type = Chorded.KeyboardType.SETUP_WELCOME_SCREEN;
                         break;
                 }
                 break;

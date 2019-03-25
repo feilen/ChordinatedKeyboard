@@ -11,6 +11,7 @@
     <string name="preference_key_auto_shift">pref_auto_shift</string>
     <string name="preference_key_vibration_type">pref_vibration_type</string>
     <string name="preference_key_left_handed_mode">pref_left_handed_mode</string>
+    <string name="preference_key_can_chord">pref_can_chord</string>
     <string name="basic_instructions">Instructions
 \n- Press a button to apply the first label
 \n- Press matching labels simultaneously to apply other labels

@@ -21,10 +21,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/chord_button_top_right"
-            android:paddingLeft="3sp"
-            android:paddingBottom="35dp"
-            android:text="text" />
+            android:background="@color/black"
+            android:padding="30dp"
+            android:text="It appears as though your device can't use chords. The keyboard will still work, but have a few less layout options. Tap to continue."
+            android:textAlignment="center"
+            android:textSize="14dp"/>
 
     </LinearLayout>
 </LinearLayout>

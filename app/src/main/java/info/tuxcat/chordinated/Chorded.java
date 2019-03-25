@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.inputmethodservice.ExtractEditText;
 import android.inputmethodservice.InputMethodService;
+import android.inputmethodservice.Keyboard;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.InputType;
@@ -26,6 +27,7 @@ import android.view.inputmethod.InputConnection;
 import android.widget.Button;
 import android.os.Vibrator;
 
+import java.security.Key;
 import java.util.ArrayList;
 
 public class Chorded extends InputMethodService {
@@ -58,9 +60,10 @@ public class Chorded extends InputMethodService {
 
     enum KeyboardType {
         SETUP_WELCOME_SCREEN,
+        SETUP_INTRODUCING_CHORDS,
         SETUP_CHECKING_CHORDS,
-        SETUP_CHOOSING_BUTTONS,
-        SETUP_CONFIRMATION_DIALOG,
+        SETUP_CHORD_CONFIRMATION_DIALOG,
+        SETUP_SETTINGS_CONFIRMATION_DIALOG,
         TWOFINGER,
         THREEFINGER,
         TWOXTWOFINGER,
@@ -302,12 +305,14 @@ public class Chorded extends InputMethodService {
         @Override
         public boolean onTouch(@NonNull View button, MotionEvent eventtype)
         {
-            if(settings.keyboard_type == KeyboardType.SETUP_WELCOME_SCREEN ||
-                    settings.keyboard_type == KeyboardType.SETUP_CHECKING_CHORDS ||
-                    settings.keyboard_type == KeyboardType.SETUP_CHOOSING_BUTTONS ||
-                    settings.keyboard_type == KeyboardType.SETUP_CONFIRMATION_DIALOG)
+            switch (settings.keyboard_type)
             {
-                return onTouchSetupMode(button, eventtype);
+                case SETUP_WELCOME_SCREEN:
+                case SETUP_CHECKING_CHORDS:
+                case SETUP_CHORD_CONFIRMATION_DIALOG:
+                case SETUP_INTRODUCING_CHORDS:
+                case SETUP_SETTINGS_CONFIRMATION_DIALOG:
+                    return onTouchSetupMode(button, eventtype);
             }
 
             switch(eventtype.getAction())
@@ -458,25 +463,108 @@ public class Chorded extends InputMethodService {
             return false;
         }
 
+        int setup_touch_count = 0;
         private final boolean onTouchSetupMode(@NonNull View button, MotionEvent eventtype)
         {
+            final Button chord_one = root_view.findViewById(R.id.chord_one);
             switch (settings.keyboard_type)
             {
-                case SETUP_CHECKING_CHORDS:
+                case SETUP_WELCOME_SCREEN:
                     switch(eventtype.getAction())
                     {
-                        case MotionEvent.ACTION_DOWN:
-                            // Turn the background grey, set the text to '1'
-                            break;
                         case MotionEvent.ACTION_POINTER_DOWN:
-                            // Turn the background white, set the text to '2'
-                            is_chorded = true;
+                        case MotionEvent.ACTION_DOWN:
                             break;
                         case MotionEvent.ACTION_UP:
                         case MotionEvent.ACTION_POINTER_UP:
-                            // once both are up, go to the next screen
+                            settings.keyboard_type = KeyboardType.SETUP_INTRODUCING_CHORDS;
+                            recreateRootView();
+                            setInputView(root_view);
+                    }
+                    return true;
+                case SETUP_INTRODUCING_CHORDS:
+                    switch(eventtype.getAction())
+                    {
+                        case MotionEvent.ACTION_POINTER_DOWN:
+                        case MotionEvent.ACTION_DOWN:
+                            break;
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_POINTER_UP:
+                            settings.keyboard_type = KeyboardType.SETUP_CHECKING_CHORDS;
+                            recreateRootView();
+                            setInputView(root_view);
+                    }
+                case SETUP_CHECKING_CHORDS:
+                    final ExtractEditText eet = root_view.findViewById(R.id.inputExtractEditText);
+                    switch(button.getId())
+                    {
+                        case R.id.chord_one:
+                        case R.id.chord_two:
+                            switch(eventtype.getAction())
+                            {
+                                case MotionEvent.ACTION_DOWN:
+                                case MotionEvent.ACTION_POINTER_DOWN:
+                                    setup_touch_count++;
+                                    if(setup_touch_count == 1)
+                                    {
+                                        //eet.setText("One detected.");
+                                    } else if (setup_touch_count >= 2)
+                                    {
+                                        is_chorded = true;
+                                        //eet.setText("Two detected.");
+                                    }
+                                    break;
+                                case MotionEvent.ACTION_UP:
+                                case MotionEvent.ACTION_POINTER_UP:
+                                    // once both are up, go to the next screen
+                                    setup_touch_count--;
+                                    if(setup_touch_count == 0)
+                                    {
+                                        settings.keyboard_type = KeyboardType.SETUP_CHORD_CONFIRMATION_DIALOG;
+                                        recreateRootView();
+                                        setInputView(root_view);
+                                    }
+                                default:
+                                    return false;
+                            }
+                            return true;
                         default:
                             return false;
+                    }
+                case SETUP_CHORD_CONFIRMATION_DIALOG:
+                    switch(eventtype.getAction())
+                    {
+                        case MotionEvent.ACTION_POINTER_DOWN:
+                        case MotionEvent.ACTION_DOWN:
+                            break;
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_POINTER_UP:
+                            settings.keyboard_type = KeyboardType.SETUP_SETTINGS_CONFIRMATION_DIALOG;
+                            recreateRootView();
+                            setInputView(root_view);
+                    }
+                    return true;
+                case SETUP_SETTINGS_CONFIRMATION_DIALOG:
+                    switch(eventtype.getAction())
+                    {
+                        case MotionEvent.ACTION_POINTER_DOWN:
+                        case MotionEvent.ACTION_DOWN:
+                            break;
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_POINTER_UP:
+                            if(is_chorded)
+                            {
+                                settings.keyboard_type = KeyboardType.TWOXTWOFINGERHALFSTRETCH;
+                            } else {
+                                // TODO: chordless layouts
+                                settings.keyboard_type = KeyboardType.THREEFINGER;
+                            }
+                            settings.saveSettings(getBaseContext());
+                            recreateRootView();
+                            setInputView(root_view);
+                            resetRoot();
+                            relabelKeys();
+                            resetText();
                     }
                     return true;
                 default:
@@ -541,13 +629,15 @@ public class Chorded extends InputMethodService {
                 break;
             case SETUP_CHECKING_CHORDS:
                 // Set text to instructions, set handler, set layout to chordless
+                root_view = getLayoutInflater().inflate(R.layout.twochord, null);
+                break;
+            case SETUP_INTRODUCING_CHORDS:
+                // Set text to instructions, set handler, set layout to chordless
                 root_view = getLayoutInflater().inflate(R.layout.chordless, null);
                 break;
-            case SETUP_CHOOSING_BUTTONS:
-                // Set layout to twoxtwochord, set text, set handler
-                break;
-            case SETUP_CONFIRMATION_DIALOG:
+            case SETUP_CHORD_CONFIRMATION_DIALOG:
                 // mention where to find settings
+                root_view = getLayoutInflater().inflate(R.layout.chordless, null);
                 break;
         }
         final ExtractEditText eet = root_view.findViewById(R.id.inputExtractEditText);
@@ -562,6 +652,57 @@ public class Chorded extends InputMethodService {
         if(chord_three != null) chord_three.setOnTouchListener(onPress);
         final Button chord_four = root_view.findViewById(R.id.chord_four);
         if(chord_four != null) chord_four.setOnTouchListener(onPress);
+
+        // root_view has no root view and therefore has no idea what size it should be.
+        WindowManager wm = (WindowManager) getBaseContext().getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        Point total_size = new Point();
+        display.getSize(total_size);
+        root_view.setMinimumHeight(total_size.y);
+        root_view.setMinimumWidth(total_size.x);
+
+
+        // set space width to an ideal value
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        display.getMetrics(displaymetrics);
+        int return_button_height = (int) TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 30, displaymetrics );
+        double h = total_size.x/2.0;
+        double a = h - return_button_height;
+        double o = Math.sqrt((h*h) - (a*a));
+        View space_inputlead = root_view.findViewById(R.id.space_inputlead);
+        if(space_inputlead != null) {
+            ViewGroup.LayoutParams lp = space_inputlead.getLayoutParams();
+            lp.width = (int) (h - o);
+            space_inputlead.setLayoutParams(lp);
+        }
+
+        // Exit early if we're not using the tree.
+        switch(settings.keyboard_type)
+        {
+            case SETUP_WELCOME_SCREEN:
+                chord_one.setText("Welcome! Quick setup before we begin. Tap to continue.");
+                return;
+            case SETUP_INTRODUCING_CHORDS:
+                chord_one.setText("On the following screen, press one finger on each button simultaneously, then release.");
+                return;
+            case SETUP_CHECKING_CHORDS:
+                chord_one.setText("Press here");
+                chord_two.setText("Press here");
+                chord_one.invalidate();
+                chord_two.invalidate();
+                return;
+            case SETUP_CHORD_CONFIRMATION_DIALOG:
+                if(is_chorded)
+                {
+                    chord_one.setText("You device can use chords!\nTap to start using.");
+                } else {
+                    chord_one.setText("It appears as though your device can't use chords. The keyboard will still work, but have a few less layout options. Tap to continue.");
+                }
+                return;
+            case SETUP_SETTINGS_CONFIRMATION_DIALOG:
+                chord_one.setText("Further settings and instructions can be found in the Chordinated app. Enjoy!");
+                return;
+        }
 
         root_view.setRotation(settings.left_handed_mode ?
                 -settings.comfort_angle:
@@ -588,28 +729,6 @@ public class Chorded extends InputMethodService {
                     chord_four.setId(R.id.chord_three);
                     break;
             }
-        }
-
-        // root_view has no root view and therefore has no idea what size it should be.
-        WindowManager wm = (WindowManager) getBaseContext().getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-        Point total_size = new Point();
-        display.getSize(total_size);
-        root_view.setMinimumHeight(total_size.y);
-        root_view.setMinimumWidth(total_size.x);
-
-        // set space width to an ideal value
-        DisplayMetrics displaymetrics = new DisplayMetrics();
-        display.getMetrics(displaymetrics);
-        int return_button_height = (int) TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 30, displaymetrics );
-        double h = total_size.x/2.0;
-        double a = h - return_button_height;
-        double o = Math.sqrt((h*h) - (a*a));
-        View space_inputlead = root_view.findViewById(R.id.space_inputlead);
-        if(space_inputlead != null) {
-            ViewGroup.LayoutParams lp = space_inputlead.getLayoutParams();
-            lp.width = (int) (h - o);
-            space_inputlead.setLayoutParams(lp);
         }
 
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -769,6 +888,16 @@ public class Chorded extends InputMethodService {
 
     @Override
     public void onStartInputView(@NonNull EditorInfo info, boolean restarting) {
+        // Bail out if we're simply doing setup
+        switch(settings.keyboard_type)
+        {
+            case SETUP_CHECKING_CHORDS:
+            case SETUP_CHORD_CONFIRMATION_DIALOG:
+            case SETUP_WELCOME_SCREEN:
+            case SETUP_SETTINGS_CONFIRMATION_DIALOG:
+            case SETUP_INTRODUCING_CHORDS:
+                return;
+        }
         resetRoot();
         relabelKeys();
         resetText();
