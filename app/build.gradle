@@ -6,8 +6,8 @@ android {
         applicationId "info.tuxcat.chordinated"
         minSdkVersion 25
         targetSdkVersion 26
-        versionCode 261010104
-        versionName "1.0.2"
+        versionCode 261010106
+        versionName "1.0.4"
         resConfigs "en"
     }
     buildTypes {

@@ -426,8 +426,12 @@ public class Chorded extends InputMethodService {
                         case R.id.chord_two:
                         case R.id.chord_three:
                         case R.id.chord_four:
-                            // Invalid chord. Do nothing.
-                            if (keylookup[buttonpress_chord] == -1) return true;
+                            // Invalid chord. Ignore but reset.
+                            if (keylookup[buttonpress_chord] == -1)
+                            {
+                                buttonpress_chord = 0;
+                                return true;
+                            }
                             if (curNode.children.size() >= keylookup[buttonpress_chord]) {
                                 curNode = curNode.children.get(keylookup[buttonpress_chord]);
                                 if (curNode.children.size() == 0) {
