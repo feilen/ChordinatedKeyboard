@@ -6,13 +6,11 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.inputmethodservice.ExtractEditText;
 import android.inputmethodservice.InputMethodService;
-import android.inputmethodservice.Keyboard;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.KeyEvent;
@@ -27,7 +25,6 @@ import android.view.inputmethod.InputConnection;
 import android.widget.Button;
 import android.os.Vibrator;
 
-import java.security.Key;
 import java.util.ArrayList;
 
 public class Chorded extends InputMethodService {
