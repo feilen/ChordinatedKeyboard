@@ -29,15 +29,17 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@color/black"
+            android:gravity="right"
             android:inputType="text"
             android:maxLines="1"
-            android:textAlignment="textEnd"
+            android:text="sample"
+            android:textAlignment="gravity"
             android:textSize="18sp" />
 
         <Space
             android:id="@+id/space_inputlead"
             android:layout_width="1dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="0" />
     </LinearLayout>
 
