@@ -38,6 +38,7 @@ public class Chorded extends InputMethodService {
     // Tree and traversal
     private HuffmanTree tree;
     private HuffmanTree sym_tree;
+    private HuffmanTree number_tree;
     private HuffmanNode curNode;
     private int[] keylookup;
 
@@ -101,7 +102,8 @@ public class Chorded extends InputMethodService {
     enum SymType {
         SYM_ON,
         SYM_OFF,
-        SYM_IN_TREE
+        SYM_IN_TREE,
+        SYM_NUMBER_ONLY
     }
 
     enum VibrationType {
@@ -264,6 +266,7 @@ public class Chorded extends InputMethodService {
     {
         switch(sym)
         {
+            case SYM_NUMBER_ONLY:
             case SYM_IN_TREE:
                 return;
             case SYM_ON:
@@ -291,6 +294,10 @@ public class Chorded extends InputMethodService {
                 break;
             case SYM_ON:
                 curNode = sym_tree.root;
+                break;
+            case SYM_NUMBER_ONLY:
+                curNode = number_tree.root;
+                break;
         }
     }
 
@@ -379,7 +386,7 @@ public class Chorded extends InputMethodService {
                                         break;
                                     case MEDIUM_UP:
                                     case LONG_UP:
-                                        if (sym != SymType.SYM_ON) {
+                                        if (sym != SymType.SYM_ON && sym != SymType.SYM_NUMBER_ONLY) {
                                             performShift();
                                         } else {
                                             toggleSym();
@@ -740,7 +747,7 @@ public class Chorded extends InputMethodService {
         // https://en.m.wikipedia.org/wiki/Letter_frequency
         // and later just my arbitrary Telegram chat logs.
         // Precompute numbers into one subtree
-        HuffmanTree num_tree = new HuffmanTree(sym_tree.getFactor());
+        number_tree = new HuffmanTree(sym_tree.getFactor());
         ArrayList<HuffmanNode> num_inp = new ArrayList<>();
         num_inp.add(new HuffmanNode("8", 30295.0));
         num_inp.add(new HuffmanNode("6", 31896.0));
@@ -752,11 +759,11 @@ public class Chorded extends InputMethodService {
         num_inp.add(new HuffmanNode("0", 75707.0));
         num_inp.add(new HuffmanNode("7", 26553.0));
         num_inp.add(new HuffmanNode("9", 26710.0));
-        num_tree.CreateEncoding(num_inp);
-        num_tree.root.displayString = "0123456789";
+        number_tree.CreateEncoding(num_inp);
+        number_tree.root.displayString = "0123456789";
 
         ArrayList<HuffmanNode> sym_inp = new ArrayList<>();
-        sym_inp.add(num_tree.root);
+        sym_inp.add(number_tree.root);
         sym_inp.add(new HuffmanNode("{", 1600.0));
         sym_inp.add(new HuffmanNode("}", 1600.0));
         sym_inp.add(new HuffmanNode("[", 1719.0));
@@ -866,10 +873,21 @@ public class Chorded extends InputMethodService {
         ic = getCurrentInputConnection();
         // start out on sym for numbers
         int input_class = attribute.inputType & InputType.TYPE_MASK_CLASS;
+        int input_variation = attribute.inputType & InputType.TYPE_MASK_VARIATION;
         if(!settings.symbols_in_tree) {
             switch(input_class)
             {
                 case InputType.TYPE_CLASS_NUMBER:
+                    if(input_variation == InputType.TYPE_NUMBER_VARIATION_NORMAL
+                    || input_variation == InputType.TYPE_NUMBER_VARIATION_PASSWORD)
+                    {
+                        sym = SymType.SYM_NUMBER_ONLY;
+                    }
+                    else
+                    {
+                        sym = SymType.SYM_ON;
+                    }
+                    break;
                 case InputType.TYPE_CLASS_DATETIME:
                 case InputType.TYPE_CLASS_PHONE:
                     sym = SymType.SYM_ON;
@@ -904,7 +922,8 @@ public class Chorded extends InputMethodService {
         resetText();
 
         ExtractEditText editText = root_view.findViewById(R.id.inputExtractEditText);
-        if((info.inputType & InputType.TYPE_TEXT_VARIATION_PASSWORD) > 0)
+        if((info.inputType & InputType.TYPE_TEXT_VARIATION_PASSWORD) > 0 ||
+        (info.inputType & InputType.TYPE_NUMBER_VARIATION_PASSWORD) > 0)
         {
             editText.setTransformationMethod(PasswordTransformationMethod.getInstance());
         } else {
@@ -974,7 +993,7 @@ public class Chorded extends InputMethodService {
                 chord_four.setText(getKeyLabel(new int[]{8}, caps != CapsType.LOWER));
                 break;
         }
-        if (caps == CapsType.CAPS && sym != SymType.SYM_ON)
+        if (caps == CapsType.CAPS && sym != SymType.SYM_ON && sym != SymType.SYM_NUMBER_ONLY)
         {
             chord_one.setPaintFlags(chord_one.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
             chord_two.setPaintFlags(chord_two.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
