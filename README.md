@@ -1,8 +1,10 @@
-# ChordinatedKeyboard
+# [Chordinated Keyboard](https://play.google.com/store/apps/details?id=info.tuxcat.chordinated)
+
+<img src="https://user-images.githubusercontent.com/1109288/140874082-1307c5ed-a0a0-4668-9c56-5c382c67cb3a.png" width="100" />
+
 Chordinated Keyboard is an Android keyboard that takes advantage of multi-touch (chording) and button sequences (huffman codes) to squeeze an entire keyboard into 2-4 easy to press buttons.
 
-![screenshot](https://user-images.githubusercontent.com/1109288/140873936-70bbe597-9b89-47d8-bddc-858147258ccf.png)
-![video in action](https://user-images.githubusercontent.com/1109288/140873861-9512ae26-a8bd-4006-afd7-c5a1476d207d.gif)
+<img src="https://user-images.githubusercontent.com/1109288/140873936-70bbe597-9b89-47d8-bddc-858147258ccf.png" height="400" /> <img src="https://user-images.githubusercontent.com/1109288/140873861-9512ae26-a8bd-4006-afd7-c5a1476d207d.gif" height="400" />
 
 # Features
 - Type by pressing sequences of combinations of keys. The keyboard layout is stable, so you rapidly adjust to muscle memory.
