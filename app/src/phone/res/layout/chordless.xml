@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.widget.FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="false"
+    android:background="?android:colorButtonNormal"
+    android:orientation="vertical"
+    tools:ignore="Overdraw">
+
+    <Button
+        android:id="@+id/chord_one"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="?android:colorButtonNormal"
+        android:textColor="?android:colorForeground"
+        android:padding="30dp"
+        android:text="It appears as though your device can't use chords. The keyboard will still work, but have a few less layout options. Tap to continue."
+        android:textAlignment="center"
+        android:textSize="14dp"/>
+
+</android.widget.FrameLayout>

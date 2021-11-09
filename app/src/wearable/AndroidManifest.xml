@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature android:name="android.hardware.type.watch" />
+
     <application>
-        <activity
-            android:name=".WearableConfigActivity"
-            android:label="@string/title_activity_config">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-                <action android:name="android.intent.action.VIEW" />
-            </intent-filter>
-        </activity>
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="true" />
+        <uses-library
+            android:name="com.google.android.wearable"
+            android:required="true" />
     </application>
 </manifest>

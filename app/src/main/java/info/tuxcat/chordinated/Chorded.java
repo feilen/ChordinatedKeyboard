@@ -275,7 +275,7 @@ public class Chorded extends InputMethodService {
 
     @Override
     public boolean onEvaluateFullscreenMode() {
-        return true;
+        return BuildConfig.FLAVOR == "wearable";
     }
 
     private void resetRoot() {
@@ -502,10 +502,10 @@ public class Chorded extends InputMethodService {
                         case MotionEvent.ACTION_POINTER_DOWN:
                             setup_touch_count++;
                             if (setup_touch_count == 1) {
-                                eet.setText("One detected.");
+                                if(BuildConfig.FLAVOR == "wearable") eet.setText("One detected.");
                             } else if (setup_touch_count >= 2) {
                                 is_chorded = true;
-                                eet.setText("Two detected.");
+                                if(BuildConfig.FLAVOR == "wearable") eet.setText("Two detected.");
                             }
                             break;
                         case MotionEvent.ACTION_UP:
@@ -658,8 +658,13 @@ public class Chorded extends InputMethodService {
         Display display = wm.getDefaultDisplay();
         Point total_size = new Point();
         display.getSize(total_size);
-        root_view.setMinimumHeight(total_size.y);
-        root_view.setMinimumWidth(total_size.x);
+        if (BuildConfig.FLAVOR == "wearable") {
+            root_view.setMinimumHeight(total_size.y);
+            root_view.setMinimumWidth(total_size.x);
+        } else {
+            root_view.setMinimumHeight(total_size.y/6);
+            root_view.setMinimumWidth(total_size.x);
+        }
 
 
         // set space width to an ideal value
@@ -702,31 +707,31 @@ public class Chorded extends InputMethodService {
                 return;
         }
 
-        root_view.setRotation(settings.left_handed_mode ?
-                -settings.comfort_angle:
-                settings.comfort_angle);
-        if(settings.left_handed_mode)
-        {
-            // If in left-handed mode, literally swap the IDs of chords
-            switch(settings.keyboard_type)
-            {
-                case TWOFINGER:
-                    chord_one.setId(R.id.chord_two);
-                    chord_two.setId(R.id.chord_one);
-                    break;
-                case THREEFINGER:
-                    chord_one.setId(R.id.chord_three);
-                    chord_three.setId(R.id.chord_one);
-                    break;
-                case TWOXTWOFINGER:
-                case TWOXTWOFINGERHALFSTRETCH:
-                case TWOXTWOFINGERNOSTRETCH:
-                case TWOXTWOFINGERNOCHORD:
-                    chord_one.setId(R.id.chord_two);
-                    chord_two.setId(R.id.chord_one);
-                    chord_three.setId(R.id.chord_four);
-                    chord_four.setId(R.id.chord_three);
-                    break;
+        if(BuildConfig.FLAVOR == "wearable") {
+            root_view.setRotation(settings.left_handed_mode ?
+                    -settings.comfort_angle :
+                    settings.comfort_angle);
+            if (settings.left_handed_mode) {
+                // If in left-handed mode, literally swap the IDs of chords
+                switch (settings.keyboard_type) {
+                    case TWOFINGER:
+                        chord_one.setId(R.id.chord_two);
+                        chord_two.setId(R.id.chord_one);
+                        break;
+                    case THREEFINGER:
+                        chord_one.setId(R.id.chord_three);
+                        chord_three.setId(R.id.chord_one);
+                        break;
+                    case TWOXTWOFINGER:
+                    case TWOXTWOFINGERHALFSTRETCH:
+                    case TWOXTWOFINGERNOSTRETCH:
+                    case TWOXTWOFINGERNOCHORD:
+                        chord_one.setId(R.id.chord_two);
+                        chord_two.setId(R.id.chord_one);
+                        chord_three.setId(R.id.chord_four);
+                        chord_four.setId(R.id.chord_three);
+                        break;
+                }
             }
         }
 
@@ -912,13 +917,14 @@ public class Chorded extends InputMethodService {
         relabelKeys();
         resetText();
 
-        ExtractEditText editText = root_view.findViewById(R.id.inputExtractEditText);
-        if((info.inputType & InputType.TYPE_TEXT_VARIATION_PASSWORD) > 0 ||
-        (info.inputType & InputType.TYPE_NUMBER_VARIATION_PASSWORD) > 0)
-        {
-            editText.setTransformationMethod(PasswordTransformationMethod.getInstance());
-        } else {
-            editText.setTransformationMethod(null);
+        if(BuildConfig.FLAVOR != "phone") {
+            ExtractEditText editText = root_view.findViewById(R.id.inputExtractEditText);
+            if ((info.inputType & InputType.TYPE_TEXT_VARIATION_PASSWORD) > 0 ||
+                    (info.inputType & InputType.TYPE_NUMBER_VARIATION_PASSWORD) > 0) {
+                editText.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            } else {
+                editText.setTransformationMethod(null);
+            }
         }
 
         super.onStartInputView(info, restarting);
@@ -1005,12 +1011,14 @@ public class Chorded extends InputMethodService {
 
     @Override
     public void onUpdateExtractedText(int token, ExtractedText text) {
+        if(BuildConfig.FLAVOR == "phone") return;
         ExtractEditText editText = root_view.findViewById(R.id.inputExtractEditText);
         editText.setExtractedText(text);
         super.onUpdateExtractedText(token, text);
     }
 
     private void resetText() {
+        if(BuildConfig.FLAVOR == "phone") return;
         ExtractEditText editText = root_view.findViewById(R.id.inputExtractEditText);
         ExtractedTextRequest etr = new ExtractedTextRequest();
         etr.token = 0;

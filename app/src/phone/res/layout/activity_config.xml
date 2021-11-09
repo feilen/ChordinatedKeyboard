@@ -33,7 +33,7 @@
                 android:ems="10"
                 android:text="@string/basic_instructions"
                 android:textAlignment="textStart"
-                android:textColor="@color/primary_text_dark"
+                android:textColor="#ffffff"
                 android:textSize="18sp" />
 
             <Space
@@ -91,6 +91,7 @@
                     android:text="Left-handed mode" />
 
                 <TextView
+                    android:id="@+id/layout_header"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:ems="10"
@@ -147,6 +148,7 @@
                 </RadioGroup>
 
                 <TextView
+                    android:id="@+id/comfort_header"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:ems="10"
