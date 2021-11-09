@@ -32,16 +32,6 @@
         <uses-library
             android:name="com.google.android.wearable"
             android:required="true" />
-
-        <activity
-            android:name=".ConfigActivity"
-            android:label="@string/title_activity_config">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-                <action android:name="android.intent.action.VIEW" />
-            </intent-filter>
-        </activity>
     </application>
 
 </manifest>

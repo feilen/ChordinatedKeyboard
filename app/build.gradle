@@ -17,11 +17,30 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    // Specifies one flavor dimension.
+    flavorDimensions "platform"
+    productFlavors {
+        wearable {
+            // Assigns this product flavor to the "version" flavor dimension.
+            // If you are using only one dimension, this property is optional,
+            // and the plugin automatically assigns all the module's flavors to
+            // that dimension.
+            dimension "platform"
+            applicationIdSuffix ".wearable"
+            versionNameSuffix "-wearable"
+        }
+        phone {
+            dimension "platform"
+            applicationIdSuffix ".phone"
+            versionNameSuffix "-phone"
+        }
+    }
+
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:wear:26.0.2'
-    implementation 'com.google.android.support:wearable:2.4.0'
-    compileOnly 'com.google.android.wearable:wearable:2.4.0'
+    wearableImplementation fileTree(dir: 'libs', include: ['*.jar'])
+    wearableImplementation 'com.android.support:wear:26.0.2'
+    wearableImplementation 'com.google.android.support:wearable:2.4.0'
+    wearableCompileOnly 'com.google.android.wearable:wearable:2.4.0'
 }

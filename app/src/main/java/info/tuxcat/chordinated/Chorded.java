@@ -6,8 +6,6 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.inputmethodservice.ExtractEditText;
 import android.inputmethodservice.InputMethodService;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.util.DisplayMetrics;
@@ -32,7 +30,6 @@ public class Chorded extends InputMethodService {
     // Service connections
     private View root_view;
     private InputConnection ic;
-    @Nullable
     private Vibrator vibrator;
 
     // Tree and traversal
@@ -43,13 +40,10 @@ public class Chorded extends InputMethodService {
     private int[] keylookup;
 
     // Settings
-    @NonNull
     private SettingsContainer settings = new SettingsContainer();
 
     // Current vars
-    @NonNull
     private CapsType caps = CapsType.SHIFT;
-    @NonNull
     private SymType sym = SymType.SYM_OFF;
     private int buttonpress_current;
     private int buttonpress_chord;
@@ -117,7 +111,6 @@ public class Chorded extends InputMethodService {
         return (float)Math.sqrt((n1 * n1) + (n2 * n2));
     }
 
-    @NonNull
     private SwipeDirection toSwipeDirection(float deltaX, float deltaY, float swipeThresholdSmall, float swipeThresholdMedium, float swipeThresholdBig)
     {
         float swipe_length = norm(deltaX, deltaY);
@@ -301,14 +294,12 @@ public class Chorded extends InputMethodService {
         }
     }
 
-
-    @Nullable
     private final View.OnTouchListener onPress = new View.OnTouchListener()
     {
         private float downX, downY;
 
         @Override
-        public boolean onTouch(@NonNull View button, MotionEvent eventtype)
+        public boolean onTouch(View button, MotionEvent eventtype)
         {
             switch (settings.keyboard_type)
             {
@@ -473,7 +464,7 @@ public class Chorded extends InputMethodService {
         }
 
         int setup_touch_count = 0;
-        private final boolean onTouchSetupMode(@NonNull View button, MotionEvent eventtype)
+        private final boolean onTouchSetupMode(View button, MotionEvent eventtype)
         {
             final Button chord_one = root_view.findViewById(R.id.chord_one);
             switch (settings.keyboard_type) {
@@ -851,7 +842,7 @@ public class Chorded extends InputMethodService {
     }
 
     @Override
-    public void onStartInput(@NonNull EditorInfo attribute, boolean restarting) {
+    public void onStartInput(EditorInfo attribute, boolean restarting) {
         SettingsContainer new_settings = new SettingsContainer();
         new_settings.loadSettings(getApplicationContext());
         if(!new_settings.equals(settings))
@@ -906,7 +897,7 @@ public class Chorded extends InputMethodService {
     }
 
     @Override
-    public void onStartInputView(@NonNull EditorInfo info, boolean restarting) {
+    public void onStartInputView(EditorInfo info, boolean restarting) {
         // Bail out if we're simply doing setup
         switch(settings.keyboard_type)
         {
@@ -933,7 +924,6 @@ public class Chorded extends InputMethodService {
         super.onStartInputView(info, restarting);
     }
 
-    @NonNull
     private String getKeyLabel(int[] chords, boolean is_caps)
     {
         StringBuilder label = new StringBuilder();

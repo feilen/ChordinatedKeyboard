@@ -10,7 +10,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
 
-public class ConfigActivity extends WearableActivity {
+public class WearableConfigActivity extends WearableActivity {
     private SettingsContainer settings;
 
     @Override

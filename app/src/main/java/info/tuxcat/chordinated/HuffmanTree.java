@@ -1,7 +1,5 @@
 package info.tuxcat.chordinated;
 
-import android.support.annotation.NonNull;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -25,7 +23,7 @@ class HuffmanTree {
     }
 
     
-    public void CreateEncoding(@NonNull ArrayList<HuffmanNode> nodes)
+    public void CreateEncoding(ArrayList<HuffmanNode> nodes)
     {
         // figure out the size of a full tree
         int nodecnt = factor;
@@ -44,7 +42,7 @@ class HuffmanTree {
         // sort entire list descending
         Collections.sort(nodes, new Comparator<HuffmanNode>() {
             @Override
-            public int compare(@NonNull HuffmanNode huffmanNode, @NonNull HuffmanNode t1) {
+            public int compare(HuffmanNode huffmanNode, HuffmanNode t1) {
                 if(huffmanNode.frequency > t1.frequency)
                 {
                     return -1;

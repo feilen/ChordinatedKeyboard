@@ -3,7 +3,6 @@ package info.tuxcat.chordinated;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -15,7 +14,6 @@ class SettingsContainer {
     @SuppressWarnings("FieldCanBeLocal")
     private final String CURRENT_VERSION = "1.0";
 
-    @NonNull
     private String version = "undefined";
     boolean symbols_in_tree;
     boolean space_in_tree;
@@ -26,7 +24,7 @@ class SettingsContainer {
     EnumSet<Chorded.VibrationType> vibration_type = EnumSet.noneOf(Chorded.VibrationType.class);
     Chorded.KeyboardType keyboard_type;
 
-    public boolean equals(@NonNull SettingsContainer o)
+    public boolean equals(SettingsContainer o)
     {
         return version.equals(o.version)
                 && symbols_in_tree == o.symbols_in_tree
@@ -39,7 +37,7 @@ class SettingsContainer {
                 && can_chord == o.can_chord;
     }
 
-    public void saveSettings(@NonNull Context context)
+    public void saveSettings(Context context)
     {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -102,7 +100,7 @@ class SettingsContainer {
         comfort_angle = -20.0f;
     }
 
-    public void loadSettings(@NonNull Context context)
+    public void loadSettings(Context context)
     {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         version = prefs.getString(context.getResources().getString(R.string.preference_key_version), "undefined");

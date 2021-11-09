@@ -1,14 +1,11 @@
 package info.tuxcat.chordinated;
 
-import android.support.annotation.NonNull;
-
 import java.util.ArrayList;
 
 class HuffmanNode {
     String resultString = "";
     String displayString = "";
     double frequency = 0.0;
-    @NonNull
     ArrayList<HuffmanNode> children = new ArrayList<>();
     HuffmanNode(ArrayList<HuffmanNode> input)
     {
