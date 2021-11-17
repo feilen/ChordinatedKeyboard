@@ -729,7 +729,7 @@ public class Chorded extends InputMethodService {
             root_view.setMinimumHeight(total_size.y);
             root_view.setMinimumWidth(total_size.x);
         } else {
-            root_view.setMinimumHeight(total_size.y/6);
+            root_view.setMinimumHeight(total_size.y/3);
             root_view.setMinimumWidth(total_size.x);
         }
 
@@ -1005,10 +1005,10 @@ public class Chorded extends InputMethodService {
         Button chord_two = root_view.findViewById(R.id.chord_two);
         Button chord_three = root_view.findViewById(R.id.chord_three);
         Button chord_four = root_view.findViewById(R.id.chord_four);
-        Button chord_one_l = root_view.findViewById(R.id.chord_one);
-        Button chord_two_l = root_view.findViewById(R.id.chord_two);
-        Button chord_three_l = root_view.findViewById(R.id.chord_three);
-        Button chord_four_l = root_view.findViewById(R.id.chord_four);
+        Button chord_one_l = root_view.findViewById(R.id.chord_one_l);
+        Button chord_two_l = root_view.findViewById(R.id.chord_two_l);
+        Button chord_three_l = root_view.findViewById(R.id.chord_three_l);
+        Button chord_four_l = root_view.findViewById(R.id.chord_four_l);
 
         // Confusing, but each int in the 'keylabel' array is a bitmask of the chords pressed to get that label.
         // So for a non-chorded layout, they're simply 1-> 0b0001, 2-> 0b0002, etc
