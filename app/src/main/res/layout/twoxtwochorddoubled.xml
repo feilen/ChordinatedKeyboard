@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="false"
+    android:orientation="vertical"
+    tools:ignore="Overdraw">
+
+
+    <Button
+        android:id="@+id/button_return"
+        style="@android:style/DeviceDefault.ButtonBar"
+        android:background="?android:colorButtonNormal"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_weight="0"
+        android:text="@string/enter_symbol" />
+    <!--
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="20sp"
+            android:layout_weight="0"
+            android:orientation="horizontal">
+
+
+            <android.inputmethodservice.ExtractEditText
+                android:id="@+id/inputExtractEditText"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#000000"
+                android:gravity="right"
+                android:inputType="text"
+                android:maxLines="1"
+                android:text="sample"
+                android:textAlignment="gravity"
+                android:textSize="18sp" />
+
+
+        <Space
+            android:id="@+id/space_inputlead"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0" />
+    </LinearLayout>
+    -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/chord_two_l"
+                style="@android:style/DeviceDefault.ButtonBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/chord_button_top_left"
+                android:text="ABCDEFGHIJKL\nABCDEFGHIJKL\nABCDEFGHIJKL"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/chord_four_l"
+                style="@android:style/DeviceDefault.ButtonBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/chord_button_top_left"
+                android:gravity="top|center_horizontal"
+                android:paddingTop="2sp"
+                android:paddingRight="25sp"
+                android:text="0123456789\n\n)(*;^@[{}|$$#`]"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/chord_one_l"
+                style="@android:style/DeviceDefault.ButtonBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/chord_button_top_right"
+                android:text="ABCDEFGHIJKL\nABCDEFGHIJKL\nABCDEFGHIJKL"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/chord_three_l"
+                style="@android:style/DeviceDefault.ButtonBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/chord_button_top_right"
+                android:gravity="center_horizontal"
+                android:paddingLeft="25sp"
+                android:paddingTop="2sp"
+                android:text="'\n:\n)(*;^@[{}|$$#`]"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            style="@android:style/DeviceDefault.ButtonBar"
+            android:background="?android:colorButtonNormal"
+            ></LinearLayout>
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/chord_one"
+                style="@android:style/DeviceDefault.ButtonBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/chord_button_top_right"
+                android:text="ABCDEFGHIJKL\nABCDEFGHIJKL\nABCDEFGHIJKL"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/chord_three"
+                style="@android:style/DeviceDefault.ButtonBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/chord_button_top_right"
+                android:gravity="center_horizontal"
+                android:paddingLeft="25sp"
+                android:paddingTop="2sp"
+                android:text="'\n:\n)(*;^@[{}|$$#`]"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/chord_two"
+                style="@android:style/DeviceDefault.ButtonBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/chord_button_top_left"
+                android:text="ABCDEFGHIJKL\nABCDEFGHIJKL\nABCDEFGHIJKL"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/chord_four"
+                style="@android:style/DeviceDefault.ButtonBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/chord_button_top_left"
+                android:gravity="top|center_horizontal"
+                android:paddingTop="2sp"
+                android:paddingRight="25sp"
+                android:text="0123456789\n\n)(*;^@[{}|$$#`]"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

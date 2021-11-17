@@ -151,6 +151,9 @@ public class ConfigActivity extends Activity {
                     case R.id.radio_2x2nochord:
                         button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWOFINGERNOCHORD);
                         break;
+                    case R.id.radio_2x2double:
+                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWODOUBLED);
+                        break;
                 }
             }
         } else {

@@ -93,6 +93,9 @@ class SettingsContainer {
             case TWOXTWOFINGERNOCHORD:
                 editor.putString(context.getString(R.string.preference_key_layout), "TWOXTWOFINGERNOCHORD");
                 break;
+            case TWOXTWODOUBLED:
+                editor.putString(context.getString(R.string.preference_key_layout), "TWOXTWODOUBLED");
+                break;
             case SETUP_CHECKING_CHORDS:
             case SETUP_CHORD_CONFIRMATION_DIALOG:
             case SETUP_WELCOME_SCREEN:
@@ -162,6 +165,9 @@ class SettingsContainer {
                         break;
                     case "TWOXTWOFINGERNOCHORD":
                         keyboard_type = Chorded.KeyboardType.TWOXTWOFINGERNOCHORD;
+                        break;
+                    case "TWOXTWODOUBLED":
+                        keyboard_type = Chorded.KeyboardType.TWOXTWODOUBLED;
                         break;
                     case "undefined":
                     case "SETUP":

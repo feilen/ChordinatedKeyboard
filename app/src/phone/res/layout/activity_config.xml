@@ -145,6 +145,13 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="3 Fingers" />
+
+                    <RadioButton
+                        android:id="@+id/radio_2x2double"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Thumbs (doubled)" />
                 </RadioGroup>
 
                 <TextView

@@ -78,7 +78,8 @@ public class Chorded extends InputMethodService {
         TWOXTWOFINGER,
         TWOXTWOFINGERHALFSTRETCH,
         TWOXTWOFINGERNOSTRETCH,
-        TWOXTWOFINGERNOCHORD
+        TWOXTWOFINGERNOCHORD,
+        TWOXTWODOUBLED
     }
 
     // TODO: This really needs to be a bitmasked interface
@@ -561,13 +562,17 @@ public class Chorded extends InputMethodService {
                             break;
                         case MotionEvent.ACTION_UP:
                         case MotionEvent.ACTION_POINTER_UP:
-                            if(is_chorded)
-                            {
-                                settings.keyboard_type = KeyboardType.TWOXTWOFINGERHALFSTRETCH;
-                                settings.can_chord = true;
+                            if(BuildConfig.FLAVOR == "wearable") {
+                                if (is_chorded) {
+                                    settings.keyboard_type = KeyboardType.TWOXTWOFINGERHALFSTRETCH;
+                                    settings.can_chord = true;
+                                } else {
+                                    settings.keyboard_type = KeyboardType.TWOXTWOFINGERNOCHORD;
+                                    settings.can_chord = false;
+                                }
                             } else {
-                                settings.keyboard_type = KeyboardType.TWOXTWOFINGERNOCHORD;
-                                settings.can_chord = false;
+                                settings.keyboard_type = KeyboardType.TWOXTWODOUBLED;
+                                settings.can_chord = is_chorded;
                             }
                             settings.saveSettings(getBaseContext());
                             recreateRootView();
@@ -640,6 +645,13 @@ public class Chorded extends InputMethodService {
                 tree = new HuffmanTree(4);
                 keylookup = new int[]{ -1, 1, 0, -1, 3,-1,-1,-1, 2,-1,-1,-1,-1,-1,-1,-1};
                 break;
+            case TWOXTWODOUBLED:
+                // Same as above, different layout
+                root_view = getLayoutInflater().inflate(R.layout.twoxtwochorddoubled, null);
+                sym_tree = new HuffmanTree(4);
+                tree = new HuffmanTree(4);
+                keylookup = new int[]{ -1, 1, 0, -1, 3,-1,-1,-1, 2,-1,-1,-1,-1,-1,-1,-1};
+                break;
             case SETUP_WELCOME_SCREEN:
                 // Set layout to chordless, set text, set handler, exit
                 root_view = getLayoutInflater().inflate(R.layout.chordless, null);
@@ -669,6 +681,18 @@ public class Chorded extends InputMethodService {
         if(chord_three != null) chord_three.setOnTouchListener(onPress);
         final Button chord_four = root_view.findViewById(R.id.chord_four);
         if(chord_four != null) chord_four.setOnTouchListener(onPress);
+        final Button chord_one_l = root_view.findViewById(R.id.chord_one_l);
+        if(chord_one_l != null) chord_one_l.setOnTouchListener(onPress);
+        final Button chord_two_l = root_view.findViewById(R.id.chord_two_l);
+        if(chord_two_l != null) chord_two_l.setOnTouchListener(onPress);
+        final Button chord_three_l = root_view.findViewById(R.id.chord_three_l);
+        if(chord_three_l != null) chord_three_l.setOnTouchListener(onPress);
+        final Button chord_four_l = root_view.findViewById(R.id.chord_four_l);
+        if(chord_four_l != null) chord_four_l.setOnTouchListener(onPress);
+        if(chord_one_l != null) chord_one_l.setId(R.id.chord_one);
+        if(chord_two_l != null) chord_two_l.setId(R.id.chord_two);
+        if(chord_three_l != null) chord_three_l.setId(R.id.chord_three);
+        if(chord_four_l != null) chord_four_l.setId(R.id.chord_four);
 
         // root_view has no root view and therefore has no idea what size it should be.
         WindowManager wm = (WindowManager) getBaseContext().getSystemService(Context.WINDOW_SERVICE);
@@ -725,30 +749,25 @@ public class Chorded extends InputMethodService {
         }
 
         if(BuildConfig.FLAVOR == "wearable") {
-            root_view.setRotation(settings.left_handed_mode ?
-                    -settings.comfort_angle :
-                    settings.comfort_angle);
+            //root_view.setRotation(settings.left_handed_mode ?
+            //        -settings.comfort_angle :
+            //        settings.comfort_angle);
             if (settings.left_handed_mode) {
-                // If in left-handed mode, literally swap the IDs of chords
-                switch (settings.keyboard_type) {
-                    case TWOFINGER:
-                        chord_one.setId(R.id.chord_two);
-                        chord_two.setId(R.id.chord_one);
-                        break;
-                    case THREEFINGER:
-                        chord_one.setId(R.id.chord_three);
-                        chord_three.setId(R.id.chord_one);
-                        break;
-                    case TWOXTWOFINGER:
-                    case TWOXTWOFINGERHALFSTRETCH:
-                    case TWOXTWOFINGERNOSTRETCH:
-                    case TWOXTWOFINGERNOCHORD:
-                        chord_one.setId(R.id.chord_two);
-                        chord_two.setId(R.id.chord_one);
-                        chord_three.setId(R.id.chord_four);
-                        chord_four.setId(R.id.chord_three);
-                        break;
-                }
+                root_view.setScaleX(-1.0f);
+                if(eet != null) eet.setScaleX(-1.0f);
+                if(button_return != null) button_return.setScaleX(-1.0f);
+                if(chord_one != null) chord_one.setScaleX(-1.0f);
+                if(chord_two != null) chord_two.setScaleX(-1.0f);
+                if(chord_three != null) chord_three.setScaleX(-1.0f);
+                if(chord_four != null) chord_four.setScaleX(-1.0f);
+                if(chord_one_l != null) chord_one_l.setScaleX(-1.0f);
+                if(chord_two_l != null) chord_two_l.setScaleX(-1.0f);
+                if(chord_three_l != null) chord_three_l.setScaleX(-1.0f);
+                if(chord_four_l != null) chord_four_l.setScaleX(-1.0f);
+                if(chord_one_l != null) chord_one_l.setScaleX(-1.0f);
+                if(chord_two_l != null) chord_two_l.setScaleX(-1.0f);
+                if(chord_three_l != null) chord_three_l.setScaleX(-1.0f);
+                if(chord_four_l != null) chord_four_l.setScaleX(-1.0f);
             }
         }
 
@@ -1000,6 +1019,7 @@ public class Chorded extends InputMethodService {
                 chord_four.setText(getKeyLabel(new int[]{8, 12}, caps != CapsType.LOWER));
                 break;
             case TWOXTWOFINGERNOCHORD:
+            case TWOXTWODOUBLED:
                 chord_one.setText(getKeyLabel(new int[]{1}, caps != CapsType.LOWER));
                 chord_two.setText(getKeyLabel(new int[]{2}, caps != CapsType.LOWER));
                 chord_three.setText(getKeyLabel(new int[]{4}, caps != CapsType.LOWER));
