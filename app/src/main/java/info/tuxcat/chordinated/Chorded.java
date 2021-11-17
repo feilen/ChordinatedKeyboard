@@ -659,43 +659,34 @@ public class Chorded extends InputMethodService {
                 tree = new HuffmanTree(4);
                 keylookup = new int[]{ -1, 1, 0, -1, 3,-1,-1,-1, 2,-1,-1,-1,-1,-1,-1,-1};
                 break;
-            case SETUP_WELCOME_SCREEN:
-                // Set layout to chordless, set text, set handler, exit
+            case SETUP_WELCOME_SCREEN: // Set layout to chordless, set text, set handler, exit
+            case SETUP_INTRODUCING_CHORDS: // Set text to instructions, set handler, set layout to chordless
+            case SETUP_CHORD_CONFIRMATION_DIALOG: // mention where to find settings
                 root_view = getLayoutInflater().inflate(R.layout.chordless, null);
                 break;
             case SETUP_CHECKING_CHORDS:
                 // Set text to instructions, set handler, set layout to chordless
                 root_view = getLayoutInflater().inflate(R.layout.twochord, null);
                 break;
-            case SETUP_INTRODUCING_CHORDS:
-                // Set text to instructions, set handler, set layout to chordless
-                root_view = getLayoutInflater().inflate(R.layout.chordless, null);
-                break;
-            case SETUP_CHORD_CONFIRMATION_DIALOG:
-                // mention where to find settings
-                root_view = getLayoutInflater().inflate(R.layout.chordless, null);
-                break;
         }
-        final ExtractEditText eet = root_view.findViewById(R.id.inputExtractEditText);
-        if(eet != null) eet.setOnTouchListener(onPress);
-        final Button button_return = root_view.findViewById(R.id.button_return);
-        if(button_return != null) button_return.setOnTouchListener(onPress);
-        final Button chord_one = root_view.findViewById(R.id.chord_one);
-        if(chord_one != null) chord_one.setOnTouchListener(onPress);
-        final Button chord_two = root_view.findViewById(R.id.chord_two);
-        if(chord_two != null) chord_two.setOnTouchListener(onPress);
-        final Button chord_three = root_view.findViewById(R.id.chord_three);
-        if(chord_three != null) chord_three.setOnTouchListener(onPress);
-        final Button chord_four = root_view.findViewById(R.id.chord_four);
-        if(chord_four != null) chord_four.setOnTouchListener(onPress);
-        final Button chord_one_l = root_view.findViewById(R.id.chord_one_l);
-        if(chord_one_l != null) chord_one_l.setOnTouchListener(onPress);
-        final Button chord_two_l = root_view.findViewById(R.id.chord_two_l);
-        if(chord_two_l != null) chord_two_l.setOnTouchListener(onPress);
-        final Button chord_three_l = root_view.findViewById(R.id.chord_three_l);
-        if(chord_three_l != null) chord_three_l.setOnTouchListener(onPress);
-        final Button chord_four_l = root_view.findViewById(R.id.chord_four_l);
-        if(chord_four_l != null) chord_four_l.setOnTouchListener(onPress);
+
+        for(int i = 0; i < ((ViewGroup)root_view).getChildCount(); i++)
+        {
+            View v = ((ViewGroup)root_view).getChildAt(i);
+            switch(v.getId()) {
+                case R.id.inputExtractEditText:
+                case R.id.button_return:
+                case R.id.chord_one:
+                case R.id.chord_two:
+                case R.id.chord_three:
+                case R.id.chord_four:
+                case R.id.chord_one_l:
+                case R.id.chord_two_l:
+                case R.id.chord_three_l:
+                case R.id.chord_four_l:
+                    v.setOnTouchListener(onPress);
+            }
+        }
 
         // root_view has no root view and therefore has no idea what size it should be.
         WindowManager wm = (WindowManager) getBaseContext().getSystemService(Context.WINDOW_SERVICE);
@@ -726,6 +717,8 @@ public class Chorded extends InputMethodService {
         }
 
         // Exit early if we're not using the tree.
+        final Button chord_one = root_view.findViewById(R.id.chord_one);
+        final Button chord_two = root_view.findViewById(R.id.chord_two);
         switch(settings.keyboard_type)
         {
             case SETUP_WELCOME_SCREEN:
@@ -752,9 +745,6 @@ public class Chorded extends InputMethodService {
         }
 
         if(BuildConfig.FLAVOR == "wearable") {
-            //root_view.setRotation(settings.left_handed_mode ?
-            //        -settings.comfort_angle :
-            //        settings.comfort_angle);
             if (settings.left_handed_mode) {
                 root_view.setScaleX(-1.0f);
                 for(int i = 0; i < ((ViewGroup)root_view).getChildCount(); i++)
