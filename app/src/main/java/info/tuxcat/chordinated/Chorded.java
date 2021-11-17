@@ -374,15 +374,19 @@ public class Chorded extends InputMethodService {
                 case MotionEvent.ACTION_POINTER_UP:
                     switch (button.getId()) {
                         case R.id.chord_one:
+                        case R.id.chord_one_l:
                             buttonpress_current = buttonpress_current & ~0b0001;
                             break;
                         case R.id.chord_two:
+                        case R.id.chord_two_l:
                             buttonpress_current = buttonpress_current & ~0b0010;
                             break;
                         case R.id.chord_three:
+                        case R.id.chord_three_l:
                             buttonpress_current = buttonpress_current & ~0b0100;
                             break;
                         case R.id.chord_four:
+                        case R.id.chord_four_l:
                             buttonpress_current = buttonpress_current & ~0b1000;
                             break;
                     }
@@ -450,6 +454,10 @@ public class Chorded extends InputMethodService {
                         case R.id.chord_two:
                         case R.id.chord_three:
                         case R.id.chord_four:
+                        case R.id.chord_one_l:
+                        case R.id.chord_two_l:
+                        case R.id.chord_three_l:
+                        case R.id.chord_four_l:
                             // Invalid chord. Ignore but reset.
                             if (keylookup[buttonpress_chord] == -1)
                             {
