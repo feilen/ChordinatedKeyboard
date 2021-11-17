@@ -757,20 +757,11 @@ public class Chorded extends InputMethodService {
             //        settings.comfort_angle);
             if (settings.left_handed_mode) {
                 root_view.setScaleX(-1.0f);
-                if(eet != null) eet.setScaleX(-1.0f);
-                if(button_return != null) button_return.setScaleX(-1.0f);
-                if(chord_one != null) chord_one.setScaleX(-1.0f);
-                if(chord_two != null) chord_two.setScaleX(-1.0f);
-                if(chord_three != null) chord_three.setScaleX(-1.0f);
-                if(chord_four != null) chord_four.setScaleX(-1.0f);
-                if(chord_one_l != null) chord_one_l.setScaleX(-1.0f);
-                if(chord_two_l != null) chord_two_l.setScaleX(-1.0f);
-                if(chord_three_l != null) chord_three_l.setScaleX(-1.0f);
-                if(chord_four_l != null) chord_four_l.setScaleX(-1.0f);
-                if(chord_one_l != null) chord_one_l.setScaleX(-1.0f);
-                if(chord_two_l != null) chord_two_l.setScaleX(-1.0f);
-                if(chord_three_l != null) chord_three_l.setScaleX(-1.0f);
-                if(chord_four_l != null) chord_four_l.setScaleX(-1.0f);
+                for(int i = 0; i < ((ViewGroup)root_view).getChildCount(); i++)
+                {
+                    View v = ((ViewGroup)root_view).getChildAt(i);
+                    v.setScaleX(-1.0f);
+                }
             }
         }
 
