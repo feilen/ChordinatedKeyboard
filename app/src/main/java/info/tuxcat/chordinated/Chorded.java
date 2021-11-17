@@ -40,8 +40,8 @@ import android.view.inputmethod.InputConnection;
 import android.widget.Button;
 import android.os.Vibrator;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.HashMap;
 
 public class Chorded extends InputMethodService {
@@ -82,7 +82,11 @@ public class Chorded extends InputMethodService {
         TWOXTWOFINGERHALFSTRETCH,
         TWOXTWOFINGERNOSTRETCH,
         TWOXTWOFINGERNOCHORD,
-        TWOXTWODOUBLED
+
+        TWOXTWOTHUMBSMIRROR,
+        TWOXTWOTHUMBSMIRRORNOCHORD,
+        TWOXTWOTHUMBSMIRRORCORNERLESS,
+        TWOXTWOTHUMBSMIRRORCORNERLESSNOCHORD,
     }
 
     // TODO: This really needs to be a bitmasked interface
@@ -578,7 +582,7 @@ public class Chorded extends InputMethodService {
                                     settings.can_chord = false;
                                 }
                             } else {
-                                settings.keyboard_type = KeyboardType.TWOXTWODOUBLED;
+                                settings.keyboard_type = KeyboardType.TWOXTWOTHUMBSMIRRORCORNERLESSNOCHORD;
                                 settings.can_chord = is_chorded;
                             }
                             settings.saveSettings(getBaseContext());
@@ -652,12 +656,42 @@ public class Chorded extends InputMethodService {
                 tree = new HuffmanTree(4);
                 keylookup = new int[]{ -1, 1, 0, -1, 3,-1,-1,-1, 2,-1,-1,-1,-1,-1,-1,-1};
                 break;
-            case TWOXTWODOUBLED:
+            case TWOXTWOTHUMBSMIRROR:
+                // Same as above, different layout
+                root_view = getLayoutInflater().inflate(R.layout.twoxtwochorddoubled, null);
+                sym_tree = new HuffmanTree(10);
+                tree = new HuffmanTree(10);
+                //                      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+                //                        10 01 11 00 10 01 11 00 10 01 11 00 10 01 11
+                //                        00 00 00 10 10 10 10 01 01 01 01 11 11 11 11
+                keylookup = new int[]{ -1, 0, 2, 5, 1, 4, 6,-1, 3, 7, 9,-1, 8,-1,-1,-1};
+                break;
+            case TWOXTWOTHUMBSMIRRORNOCHORD:
                 // Same as above, different layout
                 root_view = getLayoutInflater().inflate(R.layout.twoxtwochorddoubled, null);
                 sym_tree = new HuffmanTree(4);
                 tree = new HuffmanTree(4);
-                keylookup = new int[]{ -1, 1, 0, -1, 3,-1,-1,-1, 2,-1,-1,-1,-1,-1,-1,-1};
+                keylookup = new int[]{ -1, 0, 1, -1, 2,-1,-1,-1, 3,-1,-1,-1,-1,-1,-1,-1};
+                break;
+            case TWOXTWOTHUMBSMIRRORCORNERLESS:
+                // Missing 'chord_four' on each side
+                root_view = getLayoutInflater().inflate(R.layout.twoxtwochorddoubled, null);
+                sym_tree = new HuffmanTree(6);
+                tree = new HuffmanTree(6);
+                //                      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+                //                        10 01 11 00 10 01 11 00 10 01 11 00 10 01 11
+                //                        00 00 00 10 10 10 10 01 01 01 01 11 11 11 11
+                keylookup = new int[]{ -1, 0, 2, 4, 1, 3, 5,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+                break;
+            case TWOXTWOTHUMBSMIRRORCORNERLESSNOCHORD:
+                // Missing 'chord_four' on each, no corner
+                root_view = getLayoutInflater().inflate(R.layout.twoxtwochorddoubled, null);
+                sym_tree = new HuffmanTree(3);
+                tree = new HuffmanTree(3);
+                //                      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+                //                        10 01 11 00 10 01 11 00 10 01 11 00 10 01 11
+                //                        00 00 00 10 10 10 10 01 01 01 01 11 11 11 11
+                keylookup = new int[]{ -1, 0, 2,-1, 1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
                 break;
             case SETUP_WELCOME_SCREEN: // Set layout to chordless, set text, set handler, exit
             case SETUP_INTRODUCING_CHORDS: // Set text to instructions, set handler, set layout to chordless
@@ -670,22 +704,20 @@ public class Chorded extends InputMethodService {
                 break;
         }
 
-        for(int i = 0; i < ((ViewGroup)root_view).getChildCount(); i++)
-        {
-            View v = ((ViewGroup)root_view).getChildAt(i);
-            switch(v.getId()) {
-                case R.id.inputExtractEditText:
-                case R.id.button_return:
-                case R.id.chord_one:
-                case R.id.chord_two:
-                case R.id.chord_three:
-                case R.id.chord_four:
-                case R.id.chord_one_l:
-                case R.id.chord_two_l:
-                case R.id.chord_three_l:
-                case R.id.chord_four_l:
-                    v.setOnTouchListener(onPress);
-            }
+        int[] listeners = {R.id.inputExtractEditText,
+            R.id.button_return,
+            R.id.chord_one,
+            R.id.chord_two,
+            R.id.chord_three,
+            R.id.chord_four,
+            R.id.chord_one_l,
+            R.id.chord_two_l,
+            R.id.chord_three_l,
+            R.id.chord_four_l
+        };
+        for(int listener: listeners) {
+            final View v = root_view.findViewById(listener);
+            if (v != null) v.setOnTouchListener(onPress);
         }
 
         // root_view has no root view and therefore has no idea what size it should be.
@@ -973,7 +1005,14 @@ public class Chorded extends InputMethodService {
         Button chord_two = root_view.findViewById(R.id.chord_two);
         Button chord_three = root_view.findViewById(R.id.chord_three);
         Button chord_four = root_view.findViewById(R.id.chord_four);
+        Button chord_one_l = root_view.findViewById(R.id.chord_one);
+        Button chord_two_l = root_view.findViewById(R.id.chord_two);
+        Button chord_three_l = root_view.findViewById(R.id.chord_three);
+        Button chord_four_l = root_view.findViewById(R.id.chord_four);
 
+        // Confusing, but each int in the 'keylabel' array is a bitmask of the chords pressed to get that label.
+        // So for a non-chorded layout, they're simply 1-> 0b0001, 2-> 0b0002, etc
+        // Manually arranged so the labels generally line up with eachother, which is generally easier to read.
         switch (settings.keyboard_type) {
             case TWOFINGER:
                 chord_one.setText(getKeyLabel(new int[]{1, 3}, caps != CapsType.LOWER));
@@ -1003,31 +1042,80 @@ public class Chorded extends InputMethodService {
                 chord_four.setText(getKeyLabel(new int[]{8, 12}, caps != CapsType.LOWER));
                 break;
             case TWOXTWOFINGERNOCHORD:
-            case TWOXTWODOUBLED:
                 chord_one.setText(getKeyLabel(new int[]{1}, caps != CapsType.LOWER));
                 chord_two.setText(getKeyLabel(new int[]{2}, caps != CapsType.LOWER));
                 chord_three.setText(getKeyLabel(new int[]{4}, caps != CapsType.LOWER));
                 chord_four.setText(getKeyLabel(new int[]{8}, caps != CapsType.LOWER));
                 break;
+            case TWOXTWOTHUMBSMIRRORNOCHORD:
+                chord_one.setText(getKeyLabel(new int[]{1}, caps != CapsType.LOWER));
+                chord_two.setText(getKeyLabel(new int[]{2}, caps != CapsType.LOWER));
+                chord_three.setText(getKeyLabel(new int[]{4}, caps != CapsType.LOWER));
+                chord_four.setText(getKeyLabel(new int[]{8}, caps != CapsType.LOWER));
+                chord_one_l.setText(getKeyLabel(new int[]{1}, caps != CapsType.LOWER));
+                chord_two_l.setText(getKeyLabel(new int[]{2}, caps != CapsType.LOWER));
+                chord_three_l.setText(getKeyLabel(new int[]{4}, caps != CapsType.LOWER));
+                chord_four_l.setText(getKeyLabel(new int[]{8}, caps != CapsType.LOWER));
+                break;
+            case TWOXTWOTHUMBSMIRROR:
+                chord_one.setText(getKeyLabel(new int[]{1, 3, 5, 9}, caps != CapsType.LOWER));
+                chord_two.setText(getKeyLabel(new int[]{2, 3, 6, 10}, caps != CapsType.LOWER));
+                chord_three.setText(getKeyLabel(new int[]{4, 5, 6, 12}, caps != CapsType.LOWER));
+                chord_four.setText(getKeyLabel(new int[]{8, 9, 10, 12}, caps != CapsType.LOWER));
+                chord_one_l.setText(getKeyLabel(new int[]{1, 3, 5, 9}, caps != CapsType.LOWER));
+                chord_two_l.setText(getKeyLabel(new int[]{2, 3, 6, 10}, caps != CapsType.LOWER));
+                chord_three_l.setText(getKeyLabel(new int[]{4, 5, 6, 12}, caps != CapsType.LOWER));
+                chord_four_l.setText(getKeyLabel(new int[]{8, 9, 10, 12}, caps != CapsType.LOWER));
+                break;
+            case TWOXTWOTHUMBSMIRRORCORNERLESSNOCHORD:
+                chord_one.setText(getKeyLabel(new int[]{1}, caps != CapsType.LOWER));
+                chord_two.setText(getKeyLabel(new int[]{2}, caps != CapsType.LOWER));
+                chord_three.setText(getKeyLabel(new int[]{4}, caps != CapsType.LOWER));
+                chord_four.setText("");
+                chord_one_l.setText(getKeyLabel(new int[]{1}, caps != CapsType.LOWER));
+                chord_two_l.setText(getKeyLabel(new int[]{2}, caps != CapsType.LOWER));
+                chord_three_l.setText(getKeyLabel(new int[]{4}, caps != CapsType.LOWER));
+                chord_four_l.setText("");
+                break;
+            case TWOXTWOTHUMBSMIRRORCORNERLESS:
+                chord_one.setText(getKeyLabel(new int[]{1, 3, 5}, caps != CapsType.LOWER));
+                chord_two.setText(getKeyLabel(new int[]{2, 3, 6}, caps != CapsType.LOWER));
+                chord_three.setText(getKeyLabel(new int[]{4, 5, 6}, caps != CapsType.LOWER));
+                chord_four.setText("");
+                chord_one_l.setText(getKeyLabel(new int[]{1, 3, 5}, caps != CapsType.LOWER));
+                chord_two_l.setText(getKeyLabel(new int[]{2, 3, 6}, caps != CapsType.LOWER));
+                chord_three_l.setText(getKeyLabel(new int[]{4, 5, 6}, caps != CapsType.LOWER));
+                chord_four_l.setText("");
+                break;
         }
         if (caps == CapsType.CAPS && sym != SymType.SYM_ON && sym != SymType.SYM_NUMBER_ONLY)
         {
-            chord_one.setPaintFlags(chord_one.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
-            chord_two.setPaintFlags(chord_two.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            if(chord_one != null) chord_one.setPaintFlags(chord_one.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            if(chord_two != null) chord_two.setPaintFlags(chord_two.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
             if(chord_three != null) chord_three.setPaintFlags(chord_three.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
             if(chord_four != null) chord_four.setPaintFlags(chord_four.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            if(chord_one_l != null) chord_one_l.setPaintFlags(chord_one_l.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            if(chord_two_l != null) chord_two_l.setPaintFlags(chord_two_l.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            if(chord_three_l != null) chord_three_l.setPaintFlags(chord_three_l.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            if(chord_four_l != null) chord_four_l.setPaintFlags(chord_four_l.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
         } else {
-            chord_one.setPaintFlags(chord_one.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
-            chord_two.setPaintFlags(chord_two.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
+            if(chord_one != null) chord_one.setPaintFlags(chord_one.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
+            if(chord_two != null) chord_two.setPaintFlags(chord_two.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
             if(chord_three != null) chord_three.setPaintFlags(chord_three.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
             if(chord_four != null) chord_four.setPaintFlags(chord_four.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
+            if(chord_one_l != null) chord_one_l.setPaintFlags(chord_one_l.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
+            if(chord_two_l != null) chord_two_l.setPaintFlags(chord_two_l.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
+            if(chord_three_l != null) chord_three_l.setPaintFlags(chord_three_l.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
+            if(chord_four_l != null) chord_four_l.setPaintFlags(chord_four_l.getPaintFlags() & ~(Paint.UNDERLINE_TEXT_FLAG));
         }
-        //noinspection ConstantConditions
         if(chord_one != null) chord_one.invalidate();
-        //noinspection ConstantConditions
         if(chord_two != null) chord_two.invalidate();
         if(chord_three != null) chord_three.invalidate();
         if(chord_four != null) chord_four.invalidate();
+        if(chord_one_l != null) chord_one_l.invalidate();
+        if(chord_two_l != null) chord_two_l.invalidate();
+        if(chord_three_l != null) chord_three_l.invalidate();
+        if(chord_four_l != null) chord_four_l.invalidate();
     }
 
     @Override

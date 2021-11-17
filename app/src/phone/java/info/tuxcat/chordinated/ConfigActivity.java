@@ -19,6 +19,7 @@ package info.tuxcat.chordinated;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -129,32 +130,14 @@ public class ConfigActivity extends Activity {
         });
 
         RadioGroup layoutgroup = findViewById(R.id.layout_radiogroup);
-        if (settings.can_chord) {
-            for (int i = 0; i < layoutgroup.getChildCount(); i++) {
-                RadioButton button = (RadioButton) layoutgroup.getChildAt(i);
-                switch (button.getId()) {
-                    case R.id.radio_2finger:
-                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOFINGER);
-                        break;
-                    case R.id.radio_3finger:
-                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.THREEFINGER);
-                        break;
-                    case R.id.radio_2x2:
-                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWOFINGER);
-                        break;
-                    case R.id.radio_2x2halfstretch:
-                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWOFINGERHALFSTRETCH);
-                        break;
-                    case R.id.radio_2x2nostretch:
-                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWOFINGERNOSTRETCH);
-                        break;
-                    case R.id.radio_2x2nochord:
-                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWOFINGERNOCHORD);
-                        break;
-                    case R.id.radio_2x2double:
-                        button.setChecked(settings.keyboard_type == Chorded.KeyboardType.TWOXTWODOUBLED);
-                        break;
-                }
+        if (true) { //settings.can_chord) {
+            for (Chorded.KeyboardType kbt: Chorded.KeyboardType.values()) {
+                if(kbt.toString().contains("SETUP")) continue;
+                RadioButton button = new RadioButton(this);
+                // button.setId(n); // Set to something usable so we can lookup later
+                button.setText(kbt.toString());
+                button.setChecked(settings.keyboard_type == kbt);
+                layoutgroup.addView(button);
             }
         } else {
             // Don't let them configure the layout if it's unchorded.
@@ -165,25 +148,12 @@ public class ConfigActivity extends Activity {
                 new RadioGroup.OnCheckedChangeListener() {
                     @Override
                     public void onCheckedChanged(RadioGroup radioGroup, int id) {
-                        switch (id) {
-                            case R.id.radio_2finger:
-                                settings.keyboard_type = Chorded.KeyboardType.TWOFINGER;
-                                break;
-                            case R.id.radio_3finger:
-                                settings.keyboard_type = Chorded.KeyboardType.THREEFINGER;
-                                break;
-                            case R.id.radio_2x2:
-                                settings.keyboard_type = Chorded.KeyboardType.TWOXTWOFINGER;
-                                break;
-                            case R.id.radio_2x2halfstretch:
-                                settings.keyboard_type = Chorded.KeyboardType.TWOXTWOFINGERHALFSTRETCH;
-                                break;
-                            case R.id.radio_2x2nostretch:
-                                settings.keyboard_type = Chorded.KeyboardType.TWOXTWOFINGERNOSTRETCH;
-                                break;
-                            case R.id.radio_2x2nochord:
-                                settings.keyboard_type = Chorded.KeyboardType.TWOXTWOFINGERNOCHORD;
-                                break;
+                        for(int i = 0; i < radioGroup.getChildCount(); i++)
+                        {
+                            View v = radioGroup.getChildAt(i);
+                            if(v.getId() == id) {
+                                settings.keyboard_type = Chorded.KeyboardType.valueOf((String) ((RadioButton)v).getText());
+                            }
                         }
                         settings.saveSettings(getApplicationContext());
                     }
