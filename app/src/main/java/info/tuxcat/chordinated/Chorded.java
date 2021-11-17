@@ -41,6 +41,8 @@ import android.widget.Button;
 import android.os.Vibrator;
 
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.HashMap;
 
 public class Chorded extends InputMethodService {
 
@@ -64,6 +66,7 @@ public class Chorded extends InputMethodService {
     private SymType sym = SymType.SYM_OFF;
     private int buttonpress_current;
     private int buttonpress_chord;
+    private HashMap<Integer, Integer> chord_lookup = new HashMap<Integer, Integer>();
 
     boolean is_chorded = false;
 
@@ -339,18 +342,22 @@ public class Chorded extends InputMethodService {
                     switch(button.getId())
                     {
                         case R.id.chord_one:
+                        case R.id.chord_one_l:
                             buttonpress_current = buttonpress_current | 0b0001;
                             buttonpress_chord = buttonpress_chord | 0b0001;
                             break;
                         case R.id.chord_two:
+                        case R.id.chord_two_l:
                             buttonpress_current = buttonpress_current | 0b0010;
                             buttonpress_chord = buttonpress_chord | 0b0010;
                             break;
                         case R.id.chord_three:
+                        case R.id.chord_three_l:
                             buttonpress_current = buttonpress_current | 0b0100;
                             buttonpress_chord = buttonpress_chord | 0b0100;
                             break;
                         case R.id.chord_four:
+                        case R.id.chord_four_l:
                             buttonpress_current = buttonpress_current | 0b1000;
                             buttonpress_chord = buttonpress_chord | 0b1000;
                             break;
@@ -689,10 +696,6 @@ public class Chorded extends InputMethodService {
         if(chord_three_l != null) chord_three_l.setOnTouchListener(onPress);
         final Button chord_four_l = root_view.findViewById(R.id.chord_four_l);
         if(chord_four_l != null) chord_four_l.setOnTouchListener(onPress);
-        if(chord_one_l != null) chord_one_l.setId(R.id.chord_one);
-        if(chord_two_l != null) chord_two_l.setId(R.id.chord_two);
-        if(chord_three_l != null) chord_three_l.setId(R.id.chord_three);
-        if(chord_four_l != null) chord_four_l.setId(R.id.chord_four);
 
         // root_view has no root view and therefore has no idea what size it should be.
         WindowManager wm = (WindowManager) getBaseContext().getSystemService(Context.WINDOW_SERVICE);

@@ -72,36 +72,16 @@ class SettingsContainer {
             vtypes_str.add(vtype.name());
         }
         editor.putStringSet(context.getString(R.string.preference_key_vibration_type), vtypes_str);
-
         switch(keyboard_type)
         {
-            case TWOFINGER:
-                editor.putString(context.getString(R.string.preference_key_layout), "TWOFINGER");
-                break;
-            case THREEFINGER:
-                editor.putString(context.getString(R.string.preference_key_layout), "THREEFINGER");
-                break;
-            case TWOXTWOFINGER:
-                editor.putString(context.getString(R.string.preference_key_layout), "TWOXTWOFINGER");
-                break;
-            case TWOXTWOFINGERHALFSTRETCH:
-                editor.putString(context.getString(R.string.preference_key_layout), "TWOXTWOFINGERHALFSTRETCH");
-                break;
-            case TWOXTWOFINGERNOSTRETCH:
-                editor.putString(context.getString(R.string.preference_key_layout), "TWOXTWOFINGERNOSTRETCH");
-                break;
-            case TWOXTWOFINGERNOCHORD:
-                editor.putString(context.getString(R.string.preference_key_layout), "TWOXTWOFINGERNOCHORD");
-                break;
-            case TWOXTWODOUBLED:
-                editor.putString(context.getString(R.string.preference_key_layout), "TWOXTWODOUBLED");
-                break;
             case SETUP_CHECKING_CHORDS:
             case SETUP_CHORD_CONFIRMATION_DIALOG:
             case SETUP_WELCOME_SCREEN:
             case SETUP_SETTINGS_CONFIRMATION_DIALOG:
                 editor.putString(context.getString(R.string.preference_key_layout), "SETUP");
                 break;
+            default:
+                editor.putString(context.getString(R.string.preference_key_layout), keyboard_type.name());
         }
         editor.apply();
     }
@@ -148,31 +128,12 @@ class SettingsContainer {
                 }
                 switch(prefs.getString(context.getResources().getString(R.string.preference_key_layout), "undefined"))
                 {
-                    case "TWOFINGER":
-                        keyboard_type = Chorded.KeyboardType.TWOFINGER;
-                        break;
-                    case "THREEFINGER":
-                        keyboard_type = Chorded.KeyboardType.THREEFINGER;
-                        break;
-                    case "TWOXTWOFINGER":
-                        keyboard_type = Chorded.KeyboardType.TWOXTWOFINGER;
-                        break;
-                    case "TWOXTWOFINGERNOSTRETCH":
-                        keyboard_type = Chorded.KeyboardType.TWOXTWOFINGERNOSTRETCH;
-                        break;
-                    case "TWOXTWOFINGERHALFSTRETCH":
-                        keyboard_type = Chorded.KeyboardType.TWOXTWOFINGERHALFSTRETCH;
-                        break;
-                    case "TWOXTWOFINGERNOCHORD":
-                        keyboard_type = Chorded.KeyboardType.TWOXTWOFINGERNOCHORD;
-                        break;
-                    case "TWOXTWODOUBLED":
-                        keyboard_type = Chorded.KeyboardType.TWOXTWODOUBLED;
-                        break;
                     case "undefined":
                     case "SETUP":
                         keyboard_type = Chorded.KeyboardType.SETUP_WELCOME_SCREEN;
                         break;
+                    default:
+                        keyboard_type = Chorded.KeyboardType.valueOf(prefs.getString(context.getResources().getString(R.string.preference_key_layout), "SETUP_WELCOME_SCREEN"));
                 }
                 break;
         }
