@@ -103,57 +103,6 @@
                     android:id="@+id/layout_radiogroup"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
-
-                    <!--
-                    <RadioButton
-                        android:id="@+id/radio_2x2halfstretch"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="2x2 Fingers, No awkward ring/index stretch (Reccomended)" />
-
-                    <RadioButton
-                        android:id="@+id/radio_2x2nostretch"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="2x2 Fingers, No diagonals" />
-
-                    <RadioButton
-                        android:id="@+id/radio_2x2nochord"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="2x2 Fingers, No chords" />
-
-                    <RadioButton
-                        android:id="@+id/radio_2x2"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="2x2 Fingers" />
-
-                    <RadioButton
-                        android:id="@+id/radio_2finger"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="2 Fingers" />
-
-                    <RadioButton
-                        android:id="@+id/radio_3finger"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="3 Fingers" />
-
-                    <RadioButton
-                        android:id="@+id/radio_2x2double"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Thumbs (doubled)" />
-                        -->
                 </RadioGroup>
 
                 <TextView

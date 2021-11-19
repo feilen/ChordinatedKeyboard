@@ -42,6 +42,7 @@ import android.os.Vibrator;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class Chorded extends InputMethodService {
@@ -87,6 +88,9 @@ public class Chorded extends InputMethodService {
         TWOXTWOTHUMBSMIRRORNOCHORD,
         TWOXTWOTHUMBSMIRRORCORNERLESS,
         TWOXTWOTHUMBSMIRRORCORNERLESSNOCHORD,
+
+        TWOXTWOTHUMBS,
+        TWOXTWOTHUMBSCORNERLESS
     }
 
     // TODO: This really needs to be a bitmasked interface
@@ -326,6 +330,8 @@ public class Chorded extends InputMethodService {
         @Override
         public boolean onTouch(View button, MotionEvent eventtype)
         {
+            boolean is_mirror_input = false;
+            int chord_bitmask = 0;
             switch (settings.keyboard_type)
             {
                 case SETUP_WELCOME_SCREEN:
@@ -334,6 +340,11 @@ public class Chorded extends InputMethodService {
                 case SETUP_INTRODUCING_CHORDS:
                 case SETUP_SETTINGS_CONFIRMATION_DIALOG:
                     return onTouchSetupMode(button, eventtype);
+                case TWOXTWOTHUMBSMIRROR:
+                case TWOXTWOTHUMBSMIRRORCORNERLESS:
+                case TWOXTWOTHUMBSMIRRORCORNERLESSNOCHORD:
+                case TWOXTWOTHUMBSMIRRORNOCHORD:
+                    is_mirror_input = true;
             }
 
             switch(eventtype.getAction())
@@ -342,53 +353,43 @@ public class Chorded extends InputMethodService {
                 case MotionEvent.ACTION_POINTER_DOWN:
                     downX = eventtype.getX();
                     downY = eventtype.getY();
-
                     switch(button.getId())
                     {
-                        case R.id.chord_one:
-                        case R.id.chord_one_l:
-                            buttonpress_current = buttonpress_current | 0b0001;
-                            buttonpress_chord = buttonpress_chord | 0b0001;
-                            break;
-                        case R.id.chord_two:
-                        case R.id.chord_two_l:
-                            buttonpress_current = buttonpress_current | 0b0010;
-                            buttonpress_chord = buttonpress_chord | 0b0010;
-                            break;
-                        case R.id.chord_three:
-                        case R.id.chord_three_l:
-                            buttonpress_current = buttonpress_current | 0b0100;
-                            buttonpress_chord = buttonpress_chord | 0b0100;
-                            break;
-                        case R.id.chord_four:
-                        case R.id.chord_four_l:
-                            buttonpress_current = buttonpress_current | 0b1000;
-                            buttonpress_chord = buttonpress_chord | 0b1000;
-                            break;
+                        case R.id.chord_one:     chord_bitmask = 0b0001; break;
+                        case R.id.chord_two:     chord_bitmask = 0b0010; break;
+                        case R.id.chord_three:   chord_bitmask = 0b0100; break;
+                        case R.id.chord_four:    chord_bitmask = 0b1000; break;
+                        case R.id.chord_one_l:   chord_bitmask = is_mirror_input ? 0b0001 : 0b00010000; break;
+                        case R.id.chord_two_l:   chord_bitmask = is_mirror_input ? 0b0010 : 0b00100000; break;
+                        case R.id.chord_three_l: chord_bitmask = is_mirror_input ? 0b0100 : 0b01000000; break;
+                        case R.id.chord_four_l:  chord_bitmask = is_mirror_input ? 0b1000 : 0b10000000; break;
                         case R.id.button_return:
                             sendDefaultEditorAction(true);
                             break;
                     }
+                    if(chord_bitmask != 0) {
+                        buttonpress_current = buttonpress_current | chord_bitmask;
+                        buttonpress_chord = buttonpress_chord | chord_bitmask;
+                    }
                     return true;
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_POINTER_UP:
-                    switch (button.getId()) {
-                        case R.id.chord_one:
-                        case R.id.chord_one_l:
-                            buttonpress_current = buttonpress_current & ~0b0001;
+                    switch(button.getId())
+                    {
+                        case R.id.chord_one:     chord_bitmask = 0b0001; break;
+                        case R.id.chord_two:     chord_bitmask = 0b0010; break;
+                        case R.id.chord_three:   chord_bitmask = 0b0100; break;
+                        case R.id.chord_four:    chord_bitmask = 0b1000; break;
+                        case R.id.chord_one_l:   chord_bitmask = is_mirror_input ? 0b0001 : 0b00010000; break;
+                        case R.id.chord_two_l:   chord_bitmask = is_mirror_input ? 0b0010 : 0b00100000; break;
+                        case R.id.chord_three_l: chord_bitmask = is_mirror_input ? 0b0100 : 0b01000000; break;
+                        case R.id.chord_four_l:  chord_bitmask = is_mirror_input ? 0b1000 : 0b10000000; break;
+                        case R.id.button_return:
+                            sendDefaultEditorAction(true);
                             break;
-                        case R.id.chord_two:
-                        case R.id.chord_two_l:
-                            buttonpress_current = buttonpress_current & ~0b0010;
-                            break;
-                        case R.id.chord_three:
-                        case R.id.chord_three_l:
-                            buttonpress_current = buttonpress_current & ~0b0100;
-                            break;
-                        case R.id.chord_four:
-                        case R.id.chord_four_l:
-                            buttonpress_current = buttonpress_current & ~0b1000;
-                            break;
+                    }
+                    if(chord_bitmask != 0) {
+                        buttonpress_current = buttonpress_current & ~chord_bitmask;
                     }
                     // Only commit when all are released
                     if (buttonpress_current != 0) {
@@ -402,6 +403,10 @@ public class Chorded extends InputMethodService {
                         case 0b0010:
                         case 0b0100:
                         case 0b1000:
+                        case 0b00010000:
+                        case 0b00100000:
+                        case 0b01000000:
+                        case 0b10000000:
                             float swipeX = eventtype.getX() - downX, swipeY = eventtype.getY() - downY;
                             SwipeDirection swiped = toSwipeDirection(swipeX, swipeY, root_view.getWidth() / 5.0f, root_view.getWidth() / 2.5f, root_view.getWidth() / 1.33f);
                             if(swiped != SwipeDirection.NONE) {
@@ -590,8 +595,13 @@ public class Chorded extends InputMethodService {
                                     settings.can_chord = false;
                                 }
                             } else {
-                                settings.keyboard_type = KeyboardType.TWOXTWOTHUMBSMIRRORCORNERLESSNOCHORD;
-                                settings.can_chord = is_chorded;
+                                if (is_chorded) {
+                                    settings.keyboard_type = KeyboardType.TWOXTWOTHUMBSCORNERLESS;
+                                    settings.can_chord = true;
+                                } else {
+                                    settings.keyboard_type = KeyboardType.TWOXTWOTHUMBSMIRRORCORNERLESSNOCHORD;
+                                    settings.can_chord = false;
+                                }
                             }
                             settings.saveSettings(getBaseContext());
                             recreateRootView();
@@ -700,6 +710,37 @@ public class Chorded extends InputMethodService {
                 //                        10 01 11 00 10 01 11 00 10 01 11 00 10 01 11
                 //                        00 00 00 10 10 10 10 01 01 01 01 11 11 11 11
                 keylookup = new int[]{ -1, 0, 2,-1, 1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+                break;
+            case TWOXTWOTHUMBS:
+                // 256 possibilities with 8 buttons, listing them all is obnoxious
+                // instead just add the ones we need
+                root_view = getLayoutInflater().inflate(R.layout.twoxtwochorddoubled, null);
+                sym_tree = new HuffmanTree(24);
+                tree = new HuffmanTree(24);
+                keylookup = new int[257]; Arrays.fill(keylookup, -1);
+                // 21  12 -> the lower 4 bits are the right side, higher are left
+                // 84  48
+                //          LR                   LR                   LR                   LR
+                                     keylookup[0x01] = 0; keylookup[0x02] = 4; keylookup[0x04] = 2; keylookup[0x08] = 6;
+                keylookup[0x10] = 1; keylookup[0x11] = 8; keylookup[0x12] =12; keylookup[0x14] =10; keylookup[0x18] =14;
+                keylookup[0x20] = 5; keylookup[0x21] =11; keylookup[0x22] =15; keylookup[0x24] =17; keylookup[0x28] =19;
+                keylookup[0x40] = 3; keylookup[0x41] = 9; keylookup[0x42] =16; keylookup[0x44] =20; keylookup[0x48] =22;
+                keylookup[0x80] = 7; keylookup[0x81] =13; keylookup[0x82] =18; keylookup[0x84] =21; keylookup[0x88] =23;
+                break;
+            case TWOXTWOTHUMBSCORNERLESS:
+                // 256 possibilities with 8 buttons, listing them all is obnoxious
+                // instead just add the ones we need. Remove all with '8'
+                root_view = getLayoutInflater().inflate(R.layout.twoxtwochorddoubled, null);
+                sym_tree = new HuffmanTree(15);
+                tree = new HuffmanTree(15);
+                keylookup = new int[257]; Arrays.fill(keylookup, -1);
+                // 21  12 -> the lower 4 bits are the right side, higher are left
+                // 84  48
+                //          LR                   LR                   LR                   LR
+                                     keylookup[0x01] = 0; keylookup[0x02] = 4; keylookup[0x04] = 2;
+                keylookup[0x10] = 1; keylookup[0x11] = 6; keylookup[0x12] =10; keylookup[0x14] = 8;
+                keylookup[0x20] = 5; keylookup[0x21] = 9; keylookup[0x22] =11; keylookup[0x24] =13;
+                keylookup[0x40] = 3; keylookup[0x41] = 7; keylookup[0x42] =12; keylookup[0x44] =14;
                 break;
             case SETUP_WELCOME_SCREEN: // Set layout to chordless, set text, set handler, exit
             case SETUP_INTRODUCING_CHORDS: // Set text to instructions, set handler, set layout to chordless
@@ -1093,6 +1134,26 @@ public class Chorded extends InputMethodService {
                 chord_one_l.setText(getKeyLabel(new int[]{1, 3, 5}, caps != CapsType.LOWER));
                 chord_two_l.setText(getKeyLabel(new int[]{2, 3, 6}, caps != CapsType.LOWER));
                 chord_three_l.setText(getKeyLabel(new int[]{4, 5, 6}, caps != CapsType.LOWER));
+                chord_four_l.setText("");
+                break;
+            case TWOXTWOTHUMBS:
+                chord_one.setText(getKeyLabel(     new int[]{0x01, 0x11, 0x21, 0x41, 0x81}, caps != CapsType.LOWER));
+                chord_two.setText(getKeyLabel(     new int[]{0x02, 0x12, 0x22, 0x42, 0x82}, caps != CapsType.LOWER));
+                chord_three.setText(getKeyLabel(   new int[]{0x04, 0x14, 0x24, 0x44, 0x84}, caps != CapsType.LOWER));
+                chord_four.setText(getKeyLabel(    new int[]{0x08, 0x18, 0x28, 0x48, 0x88}, caps != CapsType.LOWER));
+                chord_one_l.setText(getKeyLabel(   new int[]{0x10, 0x11, 0x12, 0x14, 0x18}, caps != CapsType.LOWER));
+                chord_two_l.setText(getKeyLabel(   new int[]{0x20, 0x21, 0x22, 0x24, 0x28}, caps != CapsType.LOWER));
+                chord_three_l.setText(getKeyLabel(   new int[]{0x40, 0x41, 0x42, 0x44, 0x48}, caps != CapsType.LOWER));
+                chord_four_l.setText(getKeyLabel(   new int[]{0x80, 0x81, 0x82, 0x84, 0x88}, caps != CapsType.LOWER));
+                break;
+            case TWOXTWOTHUMBSCORNERLESS:
+                chord_one.setText(getKeyLabel(     new int[]{0x01, 0x11, 0x21, 0x41}, caps != CapsType.LOWER));
+                chord_two.setText(getKeyLabel(     new int[]{0x02, 0x12, 0x22, 0x42}, caps != CapsType.LOWER));
+                chord_three.setText(getKeyLabel(   new int[]{0x04, 0x14, 0x24, 0x44}, caps != CapsType.LOWER));
+                chord_four.setText("");
+                chord_one_l.setText(getKeyLabel(   new int[]{0x10, 0x11, 0x12, 0x14}, caps != CapsType.LOWER));
+                chord_two_l.setText(getKeyLabel(   new int[]{0x20, 0x21, 0x22, 0x24}, caps != CapsType.LOWER));
+                chord_three_l.setText(getKeyLabel(   new int[]{0x40, 0x41, 0x42, 0x44}, caps != CapsType.LOWER));
                 chord_four_l.setText("");
                 break;
         }
