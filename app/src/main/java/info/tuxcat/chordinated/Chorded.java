@@ -399,6 +399,7 @@ public class Chorded extends InputMethodService {
                     // Only process swipes if a single DOWN action has been detected
                     switch(buttonpress_chord)
                     {
+                        case 0:
                         case 0b0001:
                         case 0b0010:
                         case 0b0100:
@@ -408,7 +409,7 @@ public class Chorded extends InputMethodService {
                         case 0b01000000:
                         case 0b10000000:
                             float swipeX = eventtype.getX() - downX, swipeY = eventtype.getY() - downY;
-                            SwipeDirection swiped = toSwipeDirection(swipeX, swipeY, root_view.getWidth() / 5.0f, root_view.getWidth() / 2.5f, root_view.getWidth() / 1.33f);
+                            SwipeDirection swiped = toSwipeDirection(swipeX, swipeY, root_view.getWidth() / 6.0f, root_view.getWidth() / 2.5f, root_view.getWidth() / 1.33f);
                             if(swiped != SwipeDirection.NONE) {
                                 switch (swiped) {
                                     case SHORT_UP:
@@ -463,6 +464,7 @@ public class Chorded extends InputMethodService {
                         case R.id.chord_two_l:
                         case R.id.chord_three_l:
                         case R.id.chord_four_l:
+                        case R.id.center_spacing:
                             // Invalid chord. Ignore but reset.
                             if (keylookup[buttonpress_chord] == -1)
                             {
@@ -762,7 +764,8 @@ public class Chorded extends InputMethodService {
             R.id.chord_one_l,
             R.id.chord_two_l,
             R.id.chord_three_l,
-            R.id.chord_four_l
+            R.id.chord_four_l,
+            R.id.center_spacing
         };
         for(int listener: listeners) {
             final View v = root_view.findViewById(listener);
